@@ -1,0 +1,31 @@
+# Dependencies
+node_modules
+
+# Environment / secrets
+.env
+.env.*.local
+*.local
+
+# Build output
+dist
+build
+.vite
+
+# Backend runtime artifacts
+backend/uploads
+backend/.data
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea
+.vscode/*
+!.vscode/extensions.json
+/.claude
+/.agents
+design-system
+*.md

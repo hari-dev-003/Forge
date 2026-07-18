@@ -1,0 +1,56 @@
+import { userRepo } from '../repositories/userRepo.js';
+import { authProvider } from '../auth/index.js';
+import { ROLES } from '../config/constants.js';
+import { BadRequestError, NotFoundError } from '../lib/errors.js';
+
+export const userService = {
+  /** Admin creates a manager or user (with credentials for local auth). */
+  async createUser(actor, dto) {
+    if (dto.role === ROLES.USER && !dto.managerId) {
+      throw new BadRequestError('A field user must be assigned to a manager');
+    }
+    if (dto.managerId) {
+      const mgr = await userRepo.getById(dto.managerId);
+      if (!mgr || mgr.role !== ROLES.MANAGER) {
+        throw new BadRequestError('managerId must reference an existing manager');
+      }
+    }
+    // Provision in Cognito (credentials + group) and persist the DynamoDB profile.
+    const { user } = await authProvider.adminCreateUser(dto);
+    return user;
+  },
+
+  async getProfile(id) {
+    const user = await userRepo.getById(id);
+    if (!user) throw new NotFoundError('User not found');
+    return user;
+  },
+
+  /** Role-scoped listing: admin sees all, manager sees their team. */
+  async list(actor, { role } = {}) {
+    if (actor.role === ROLES.ADMIN) {
+      if (role) return userRepo.listByRole(role);
+      return userRepo.listAll();
+    }
+    if (actor.role === ROLES.MANAGER) {
+      return userRepo.listTeam(actor.id);
+    }
+    return [];
+  },
+
+  async listManagers() {
+    return userRepo.listByRole(ROLES.MANAGER);
+  },
+
+  async updateUser(actor, id, patch) {
+    const user = await userRepo.getById(id);
+    if (!user) throw new NotFoundError('User not found');
+    const allowed = {};
+    for (const k of ['name', 'region', 'active', 'managerId']) {
+      if (patch[k] !== undefined) allowed[k] = patch[k];
+    }
+    return userRepo.update(id, allowed);
+  },
+};
+
+export default userService;

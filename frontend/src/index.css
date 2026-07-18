@@ -1,0 +1,91 @@
+@import "tailwindcss";
+/* ─── Forge design tokens (Tailwind v4 @theme → utilities) ───────
+   Each --color-* becomes bg-text-border-* etc. */
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --color-bg: #f5f6fb;
+  --color-surface: #ffffff;
+  --color-surface-2: #f8f9fd;
+  --color-border: #e6e8f0;
+  --color-ink: #1a1c2b;
+  --color-muted: #6b7189;
+
+  --color-primary: #4f46e5;
+  --color-primary-dark: #4338ca;
+  --color-primary-soft: #eef0fe;
+
+  --color-success: #16a34a;
+  --color-success-soft: #e7f6ec;
+  --color-warning: #d97706;
+  --color-warning-soft: #fdf1e3;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fdeaea;
+  --color-info: #2563eb;
+
+  --color-sidebar: #171826;
+
+  --shadow-card: 0 1px 3px rgba(20, 22, 50, 0.06), 0 8px 24px rgba(20, 22, 50, 0.05);
+
+  --animate-toast-in: toast-in 0.2s ease;
+}
+
+@keyframes toast-in {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Global base (Tailwind preflight handles the reset). */
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Remove the 300ms tap delay on touch devices. */
+  a,
+  button,
+  [role='button'],
+  label,
+  select {
+    touch-action: manipulation;
+  }
+
+  /* Visible keyboard focus for interactive chrome (accessibility P1).
+     Inputs/selects/textarea already show their own focus ring via utilities. */
+  a:focus-visible,
+  button:focus-visible,
+  [role='button']:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* Respect reduced-motion preferences (accessibility P2, High severity). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Guarantee ≥44px touch targets for links/buttons on touch devices (P2). */
+@media (pointer: coarse) {
+  a,
+  button {
+    min-height: 44px;
+  }
+}

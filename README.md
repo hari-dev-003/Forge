@@ -1,0 +1,159 @@
+# Forge
+
+Enterprise **Sales Force Automation & Field Operations** platform. Field executives
+log verified client meetings, managers approve them, a configurable **points engine**
+turns approvals into a gamified **leaderboard**, and everything rolls up into
+role-based **dashboards**.
+
+See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the full system design and rationale.
+
+---
+
+## Tech stack (AWS)
+
+| Layer | Service |
+|---|---|
+| Frontend | React + Redux Toolkit (Vite) → **Amplify Hosting** |
+| API | Express on **Lambda** (`serverless-http`) + **API Gateway** |
+| Auth | **Cognito** User Pools + Groups (Admin / Manager / User) |
+| Data | **DynamoDB** single table (`pk`/`sk` + GSI1 + GSI2) |
+| Photos | **S3** presigned uploads (browser → S3 directly) |
+
+There is **no local/offline mode** — the app talks to real AWS services, configured
+through `backend/.env` (see `.env.example`). The backend **refuses to start** if any
+required AWS variable is missing (no silent fallback).
+
+---
+
+## Project structure
+
+```
+Forge/
+├─ PROJECT_PLAN.md          # Full project plan / architecture
+├─ backend/
+│  ├─ .env / .env.example   # Secrets & config (.env is gitignored)
+│  └─ src/
+│     ├─ config/            # env loading + domain constants
+│     ├─ datastore/         # DynamoDB single-table store
+│     ├─ repositories/      # access-pattern data access (keys in models/keys.js)
+│     ├─ auth/              # Cognito auth (login / verify / admin-create user)
+│     ├─ storage/           # S3 presigned uploads
+│     ├─ services/          # business logic (points engine, approvals, …)
+│     ├─ controllers/       # thin HTTP handlers
+│     ├─ routes/            # express routers
+│     ├─ middleware/        # auth, RBAC, validation, errors
+│     ├─ validators/        # zod schemas
+│     ├─ bootstrap/         # one-time AWS bootstrap (admin + groups + config)
+│     ├─ app.js  server.js  lambda.js
+│     └─ ...
+└─ frontend/
+   └─ src/
+      ├─ app/store.js       # Redux store
+      ├─ features/*/        # Redux slices (auth, meetings, approvals, …)
+      ├─ api/client.js      # axios + token interceptor
+      ├─ components/        # ui primitives, layout, meeting components
+      └─ pages/             # login, dashboard, submit, review, leaderboard, team, config
+```
+
+---
+
+## Prerequisites — provision once in AWS
+
+1. **DynamoDB** table — partition key `pk` (S), sort key `sk` (S); two GSIs:
+   `GSI1` (`gsi1pk`/`gsi1sk`) and `GSI2` (`gsi2pk`/`gsi2sk`). Name it `Forge` (or set `DDB_TABLE_NAME`).
+2. **S3** bucket for photos — add a CORS rule allowing `PUT` from your app origin.
+3. **Cognito** user pool + app client — enable **`ALLOW_ADMIN_USER_PASSWORD_AUTH`**.
+4. **AWS credentials** — `aws configure` locally, or the Lambda execution role in prod
+   (needs DynamoDB, S3, and `cognito-idp:Admin*` / `CreateGroup` permissions).
+
+## Setup
+
+### 1. Backend
+
+```bash
+cd backend
+cp .env.example .env      # fill AWS_REGION, DDB_TABLE_NAME, S3_BUCKET,
+                          # COGNITO_USER_POOL_ID, COGNITO_CLIENT_ID, BOOTSTRAP_ADMIN_*
+npm install
+npm run bootstrap         # creates Cognito groups + first admin + default points rules
+npm run dev               # Express locally, hitting your real AWS resources
+```
+
+### 2. Frontend
+
+```bash
+cd frontend
+cp .env.example .env      # set VITE_API_URL to your API Gateway URL
+npm install
+npm run dev               # or: npm run build && npm run preview
+```
+
+Sign in with the `BOOTSTRAP_ADMIN_EMAIL` / password from your `.env`. The admin creates
+managers and field users from the **Team** page — each is provisioned in **Cognito +
+DynamoDB**. There is **no self-signup**.
+
+---
+
+## Core flow
+
+1. **Field user** logs a meeting (1-to-1 or group) with a gallery photo → enters the
+   review queue as `PENDING`.
+2. **Manager** approves/rejects. Approval runs the points engine + leaderboard update
+   in a single guarded transaction (points can never be double-awarded).
+3. **Leaderboard** and **dashboards** update immediately.
+
+## Key API routes
+
+```
+POST /api/auth/login                 POST /api/uploads/presign
+GET  /api/dashboard/summary          POST /api/meetings           (user)
+GET  /api/approvals/queue  (mgr)     POST /api/meetings/:id/decision (mgr)
+GET  /api/leaderboard?scope=ALLTIME  GET  /api/leaderboard/me
+POST /api/users            (admin)   GET/PUT /api/config/points   (admin)
+```
+
+---
+
+## PWA (installable on iOS & Android)
+
+Forge is a Progressive Web App — installable to the home screen on Android and iOS,
+with an offline app shell. Implemented **without `vite-plugin-pwa`** (hand-rolled
+static files) to stay compatible with Vite 8 / Rolldown.
+
+| Piece | File |
+|---|---|
+| Web manifest | `frontend/public/manifest.webmanifest` |
+| Service worker | `frontend/public/sw.js` (network-first navigations, cache-first assets, API never cached) |
+| Icons (192/512/maskable/apple-touch) | `frontend/public/icons/` — generated by `npm run icons` |
+| SW registration | `frontend/src/registerSW.js` (production only) |
+| Install prompt | `frontend/src/hooks/usePwaInstall.js` + buttons on login / topbar |
+
+- **Regenerate icons:** `cd frontend && npm run icons` (dependency-free PNG generator).
+- **Android/desktop:** an "Install app" button appears when the browser allows it.
+- **iOS:** the login screen shows the *Share → Add to Home Screen* hint (iOS doesn't
+  fire the install event).
+- The service worker is **only active in production builds** (`npm run build` + serve).
+  In dev it's unregistered so it never interferes with HMR.
+- Requires **HTTPS** in production (Amplify provides it); `localhost` counts as secure.
+
+Test it locally:
+
+```bash
+cd frontend
+npm run build && npm run preview   # then open the printed URL and check DevTools → Application
+```
+
+---
+
+## Deploying to AWS (outline)
+
+1. **DynamoDB** — create the single table: keys `pk`/`sk`, plus GSIs `GSI1` (`gsi1pk`/`gsi1sk`)
+   and `GSI2` (`gsi2pk`/`gsi2sk`). Set `DATA_BACKEND=dynamodb`, `DDB_TABLE_NAME`.
+2. **Cognito** — create a User Pool with groups `Admin` / `Manager` / `User`. Set
+   `AUTH_PROVIDER=cognito` and the pool/client IDs.
+3. **S3** — create a photos bucket with CORS for PUT. Set `STORAGE_PROVIDER=s3`, `S3_BUCKET`.
+4. **Lambda + API Gateway** — deploy `backend/src/lambda.js` as the handler behind an
+   API Gateway proxy route (use SAM / CDK / Serverless Framework).
+5. **Amplify** — build the frontend with `VITE_API_URL` pointing at the API Gateway URL.
+
+Nothing in the application code changes between local and cloud — only `.env`.
