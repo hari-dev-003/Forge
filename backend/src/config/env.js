@@ -20,7 +20,8 @@ export const env = {
 
   // S3
   s3Bucket: get('S3_BUCKET'),
-  s3PresignExpires: Number(get('S3_PRESIGN_EXPIRES', { def: '300' })),
+  s3PresignExpires: Number(get('S3_PRESIGN_EXPIRES', { def: '300' })), // upload PUT window
+  s3ViewExpires: Number(get('S3_VIEW_EXPIRES', { def: '3600' })), // photo GET view window
 
   // Cognito
   cognito: {

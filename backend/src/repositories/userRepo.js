@@ -37,19 +37,6 @@ export const userRepo = {
     return toUser(await store.getItem(K.userPk(id), K.userSk()));
   },
 
-  /** Auth needs the password hash — kept out of the public DTO. */
-  async getRawById(id) {
-    const store = getStore();
-    return getStore().getItem(K.userPk(id), K.userSk());
-  },
-
-  async findByEmail(email) {
-    const store = getStore();
-    const items = await store.scan({ typeEquals: 'USER' });
-    const found = items.find((u) => u.email?.toLowerCase() === email.toLowerCase());
-    return found || null;
-  },
-
   async update(id, patch) {
     const store = getStore();
     const updated = await store.updateItem(K.userPk(id), K.userSk(), { set: patch });

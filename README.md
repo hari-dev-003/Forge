@@ -145,15 +145,52 @@ npm run build && npm run preview   # then open the printed URL and check DevTool
 
 ---
 
-## Deploying to AWS (outline)
+## Production deployment & hardening
 
-1. **DynamoDB** — create the single table: keys `pk`/`sk`, plus GSIs `GSI1` (`gsi1pk`/`gsi1sk`)
-   and `GSI2` (`gsi2pk`/`gsi2sk`). Set `DATA_BACKEND=dynamodb`, `DDB_TABLE_NAME`.
-2. **Cognito** — create a User Pool with groups `Admin` / `Manager` / `User`. Set
-   `AUTH_PROVIDER=cognito` and the pool/client IDs.
-3. **S3** — create a photos bucket with CORS for PUT. Set `STORAGE_PROVIDER=s3`, `S3_BUCKET`.
-4. **Lambda + API Gateway** — deploy `backend/src/lambda.js` as the handler behind an
-   API Gateway proxy route (use SAM / CDK / Serverless Framework).
-5. **Amplify** — build the frontend with `VITE_API_URL` pointing at the API Gateway URL.
+### DynamoDB
+- Single table (`pk`/`sk` + `GSI1` gsi1pk/gsi1sk + `GSI2` gsi2pk/gsi2sk), **on-demand** billing.
+- Enable **Point-in-Time Recovery (PITR)** and **deletion protection**.
+- ⚠️ Admin/manager dashboards currently use `Scan` over the table. Fine at small scale;
+  for large data, add the DynamoDB **Streams → aggregation** pipeline (PROJECT_PLAN.md §8).
 
-Nothing in the application code changes between local and cloud — only `.env`.
+### S3 (meeting photos — contain customer PII)
+- Keep the bucket **private** — Block Public Access ON. The app never exposes public URLs:
+  uploads use presigned **PUT**, reads use short-lived presigned **GET** (`S3_VIEW_EXPIRES`).
+- Bucket **CORS** must allow `PUT` and `GET` from your app origin, e.g.:
+  ```json
+  [{ "AllowedMethods": ["PUT","GET"], "AllowedOrigins": ["https://your-app.amplifyapp.com"],
+     "AllowedHeaders": ["*"], "MaxAgeSeconds": 3000 }]
+  ```
+- Lifecycle rule to expire/transition old photos (cost + retention).
+
+### Cognito
+- User pool + app client with **`ALLOW_ADMIN_USER_PASSWORD_AUTH`** enabled.
+- Groups `Admin` / `Manager` / `User` (created by `npm run bootstrap`).
+- If the app client has a **secret**, set `COGNITO_CLIENT_SECRET` (used for `SECRET_HASH`).
+- Strong password policy + MFA recommended.
+
+### Lambda + API Gateway
+- Deploy `backend/src/lambda.js` as the handler behind an API Gateway proxy (`/{proxy+}`).
+- Set env vars from `.env.example` on the function; put secrets in **SSM/Secrets Manager**.
+- Execution **role (least privilege)**: `dynamodb:*Item`/`Query`/`Scan`/`TransactWriteItems`
+  on the table + its indexes; `s3:PutObject`/`GetObject` on the bucket; `cognito-idp:AdminInitiateAuth`/`AdminCreateUser`/`AdminSetUserPassword`/`AdminAddUserToGroup`/`CreateGroup`.
+- **Rate limiting** is done at the edge: configure API Gateway **throttling / usage plans**
+  (in-Lambda rate limiting doesn't share state across instances).
+- Consider **provisioned concurrency** on the hot path to avoid cold-start latency.
+
+### Amplify (frontend)
+- Build spec: [`amplify.yml`](amplify.yml) (monorepo, `appRoot: frontend`).
+- Set app env var **`VITE_API_URL`** = your API Gateway invoke URL (`…/prod/api`).
+- **SPA rewrite (and keep the PWA working):** add a redirect
+  `/<*>` → `/index.html` (200), but its target-address rule must **exclude static files**
+  so `manifest.webmanifest`, `sw.js`, and icons are served directly:
+  ```
+  </^[^.]+$|\.(?!(css|gif|ico|jpg|js|png|txt|svg|woff|woff2|ttf|map|json|webmanifest)$)([^.]+$)/>
+  ```
+  (Amplify's default SPA rule omits `webmanifest` — add it, or the manifest 404s and install breaks.)
+
+### Application security (already in code)
+- `helmet` security headers, `x-powered-by` disabled, `trust proxy` for API Gateway.
+- CORS restricted to `CORS_ORIGIN` (Bearer tokens, no cookies/credentials).
+- JWTs verified against the Cognito JWKS (`aws-jwt-verify`); RBAC scoped per request.
+- Backend **fails fast** if required AWS env vars are missing (no silent fallback).

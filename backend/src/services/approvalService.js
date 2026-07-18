@@ -6,32 +6,25 @@ import { configRepo } from '../repositories/configRepo.js';
 import { auditRepo } from '../repositories/auditRepo.js';
 import { computePoints } from './pointsEngine.js';
 import { canAccess } from './meetingService.js';
-import { storage } from '../storage/index.js';
+import { withPhotoUrl, withPhotoUrls } from './photoUrls.js';
 import { ROLES, MEETING_STATUS } from '../config/constants.js';
 import { BadRequestError, ForbiddenError, NotFoundError, ConflictError } from '../lib/errors.js';
 
 const REVIEWABLE = [MEETING_STATUS.PENDING, MEETING_STATUS.MODIFICATION_REQUESTED];
-
-function withPhotoUrl(meeting) {
-  if (meeting?.photo?.key && !meeting.photo.url) {
-    return { ...meeting, photo: { ...meeting.photo, url: storage.publicUrl(meeting.photo.key) } };
-  }
-  return meeting;
-}
 
 export const approvalService = {
   /** Manager review queue (default PENDING). */
   async queue(user, { status = MEETING_STATUS.PENDING, limit } = {}) {
     if (user.role === ROLES.ADMIN) {
       const all = await meetingRepo.listAll();
-      return all
+      const filtered = all
         .filter((m) => m.status === status)
-        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
-        .map(withPhotoUrl);
+        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+      return withPhotoUrls(filtered);
     }
     if (user.role !== ROLES.MANAGER) throw new ForbiddenError();
     const items = await meetingRepo.listByManagerStatus(user.id, status, { limit });
-    return items.map(withPhotoUrl);
+    return withPhotoUrls(items);
   },
 
   /**
@@ -108,7 +101,7 @@ export const approvalService = {
       throw new BadRequestError('Unknown decision');
     }
 
-    return withPhotoUrl(await meetingRepo.getById(meetingId));
+    return await withPhotoUrl(await meetingRepo.getById(meetingId));
   },
 };
 

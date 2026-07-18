@@ -1,6 +1,6 @@
 import { meetingRepo } from '../repositories/meetingRepo.js';
 import { auditRepo } from '../repositories/auditRepo.js';
-import { storage } from '../storage/index.js';
+import { withPhotoUrl, withPhotoUrls } from './photoUrls.js';
 import { newId } from '../lib/ids.js';
 import { ROLES, MEETING_STATUS, MEETING_TYPES } from '../config/constants.js';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../lib/errors.js';
@@ -11,13 +11,6 @@ export function canAccess(user, meeting) {
   if (user.role === ROLES.ADMIN) return true;
   if (user.role === ROLES.MANAGER) return meeting.managerId === user.id;
   return meeting.employeeId === user.id;
-}
-
-function withPhotoUrl(meeting) {
-  if (meeting?.photo?.key && !meeting.photo.url) {
-    return { ...meeting, photo: { ...meeting.photo, url: storage.publicUrl(meeting.photo.key) } };
-  }
-  return meeting;
 }
 
 export const meetingService = {
@@ -95,22 +88,22 @@ export const meetingService = {
 
   async listMine(user, { limit } = {}) {
     const items = await meetingRepo.listByUser(user.id, { limit });
-    return items.map(withPhotoUrl);
+    return withPhotoUrls(items);
   },
 
   /** Role-scoped listing for dashboards / history. */
   async list(user, { status, limit } = {}) {
     if (user.role === ROLES.USER) {
       const items = await meetingRepo.listByUser(user.id, { limit });
-      return items.filter((m) => !status || m.status === status).map(withPhotoUrl);
+      return withPhotoUrls(items.filter((m) => !status || m.status === status));
     }
     const all = await meetingRepo.listAll();
     const scoped =
       user.role === ROLES.MANAGER ? all.filter((m) => m.managerId === user.id) : all;
-    return scoped
+    const filtered = scoped
       .filter((m) => !status || m.status === status)
-      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
-      .map(withPhotoUrl);
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+    return withPhotoUrls(filtered);
   },
 };
 
