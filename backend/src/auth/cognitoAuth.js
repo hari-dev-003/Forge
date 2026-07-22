@@ -17,12 +17,12 @@ import {
   CreateGroupCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
-import { env } from '../config/env.js';
+import { env, awsClientConfig } from '../config/env.js';
 import { userRepo } from '../repositories/userRepo.js';
 import { ROLES } from '../config/constants.js';
 import { BadRequestError, UnauthorizedError, ConflictError } from '../lib/errors.js';
 
-const client = new CognitoIdentityProviderClient({ region: env.cognito.region });
+const client = new CognitoIdentityProviderClient(awsClientConfig(env.cognito.region));
 
 const GROUP_FOR_ROLE = { ADMIN: 'Admin', MANAGER: 'Manager', USER: 'User' };
 const roleFromGroups = (groups = []) =>

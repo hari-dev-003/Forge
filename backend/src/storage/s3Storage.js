@@ -3,14 +3,14 @@
 import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import express from 'express';
-import { env } from '../config/env.js';
+import { env, awsClientConfig } from '../config/env.js';
 import { newId, monthKey } from '../lib/ids.js';
 
 const extFromContentType = (ct = '') =>
   ct.includes('png') ? 'png' : ct.includes('webp') ? 'webp' : 'jpg';
 
 export function createS3Storage() {
-  const client = new S3Client({ region: env.awsRegion });
+  const client = new S3Client(awsClientConfig());
 
   return {
     provider: 's3',

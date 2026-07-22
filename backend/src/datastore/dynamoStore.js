@@ -15,7 +15,7 @@ import {
   TransactWriteCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { ConflictError } from '../lib/errors.js';
-import { env } from '../config/env.js';
+import { env, awsClientConfig } from '../config/env.js';
 
 function buildUpdate({ set, add }) {
   const names = {};
@@ -58,7 +58,7 @@ function buildCondition(condition, names, values) {
 }
 
 export function createDynamoStore() {
-  const client = new DynamoDBClient({ region: env.awsRegion });
+  const client = new DynamoDBClient(awsClientConfig());
   const doc = DynamoDBDocumentClient.from(client, {
     marshallOptions: { removeUndefinedValues: true },
   });

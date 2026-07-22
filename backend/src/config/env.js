@@ -16,6 +16,11 @@ export const env = {
 
   // AWS
   awsRegion: get('AWS_REGION', { def: 'ap-south-1' }),
+  // Optional explicit credentials. If unset, the SDK uses its default provider
+  // chain (IAM execution role in Lambda, ~/.aws/credentials locally).
+  awsAccessKeyId: get('AWS_ACCESS_KEY_ID'),
+  awsSecretAccessKey: get('AWS_SECRET_ACCESS_KEY'),
+  awsSessionToken: get('AWS_SESSION_TOKEN'), // only for temporary/STS creds
   ddbTableName: get('DDB_TABLE_NAME', { def: 'Forge' }),
 
   // S3
@@ -40,11 +45,36 @@ export const env = {
 };
 
 /**
+ * Build AWS SDK client config. If explicit keys are set in env, use them;
+ * otherwise return just the region so the SDK falls back to its default
+ * credential provider chain (IAM role in Lambda, ~/.aws/credentials locally).
+ * Pass a region override where needed (e.g. Cognito).
+ */
+export function awsClientConfig(region = env.awsRegion) {
+  const cfg = { region };
+  if (env.awsAccessKeyId && env.awsSecretAccessKey) {
+    cfg.credentials = {
+      accessKeyId: env.awsAccessKeyId,
+      secretAccessKey: env.awsSecretAccessKey,
+      ...(env.awsSessionToken ? { sessionToken: env.awsSessionToken } : {}),
+    };
+  }
+  return cfg;
+}
+
+/**
  * Fail fast at startup if required AWS configuration is missing — there is no
  * local fallback. Called from server.js / lambda.js / bootstrap.js.
  */
 export function validateEnv({ requireBootstrapAdmin = false } = {}) {
   const missing = [];
+
+  // Credentials must be set as a pair (or not at all → use the default chain).
+  if (Boolean(env.awsAccessKeyId) !== Boolean(env.awsSecretAccessKey)) {
+    throw new Error(
+      'Set BOTH AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY together, or neither (to use the IAM role / default chain).'
+    );
+  }
   const required = {
     AWS_REGION: env.awsRegion,
     DDB_TABLE_NAME: env.ddbTableName,
