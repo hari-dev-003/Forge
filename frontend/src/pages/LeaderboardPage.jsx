@@ -10,8 +10,12 @@ const SCOPES = [
   { key: LEADERBOARD_SCOPES.MONTHLY, label: 'This month' },
 ];
 
-const RANK_TONE = ['bg-[#fef3c7] text-[#b45309]', 'bg-[#e5e7eb] text-[#4b5563]', 'bg-[#fde4d0] text-[#b45309]'];
-const rankTone = (i) => RANK_TONE[i] || 'bg-surface-2 text-muted';
+const RANK_TONE = [
+  'bg-primary/20 text-primary border border-primary/40 font-extrabold shadow-[0_0_8px_rgba(241,184,17,0.3)]',
+  'bg-white/10 text-white border border-white/20 font-bold',
+  'bg-amber-700/20 text-amber-400 border border-amber-600/30 font-bold',
+];
+const rankTone = (i) => RANK_TONE[i] || 'bg-surface-2 text-muted border border-border';
 
 export default function LeaderboardPage() {
   const dispatch = useDispatch();
@@ -26,7 +30,7 @@ export default function LeaderboardPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Leaderboard</h1>
+        <h1 className="text-2xl font-bold font-heading text-white">Leaderboard</h1>
         <p className="text-muted text-sm mt-1">Ranked by approved points. Updates the moment a manager approves a meeting.</p>
       </div>
 
@@ -46,10 +50,10 @@ export default function LeaderboardPage() {
             {SCOPES.map((s) => (
               <button
                 key={s.key}
-                className={`px-3 py-1.75 text-[13px] rounded-[9px] font-semibold cursor-pointer transition-colors ${
+                className={`px-3 py-1.75 text-[13px] rounded-[9px] font-semibold cursor-pointer transition-all duration-200 ${
                   scope === s.key
-                    ? 'bg-primary text-white'
-                    : 'bg-transparent text-muted border border-border hover:bg-surface-2 hover:text-ink'
+                    ? 'bg-primary text-[#08090d] font-bold shadow-[0_0_10px_rgba(241,184,17,0.3)]'
+                    : 'bg-transparent text-muted border border-border hover:bg-surface-2 hover:text-white'
                 }`}
                 onClick={() => dispatch(fetchBoard(s.key))}
               >
@@ -66,15 +70,15 @@ export default function LeaderboardPage() {
         ) : (
           board.map((r, i) => (
             <div
-              className={`flex items-center gap-4 px-4 py-3.5 border-b border-border last:border-b-0 ${
-                r.userId === user.id ? 'bg-primary-soft rounded-[9px]' : ''
+              className={`flex items-center gap-4 px-4 py-3.5 border-b border-border last:border-b-0 hover:bg-white/5 transition-colors ${
+                r.userId === user.id ? 'bg-primary-soft/80 border-l-4 border-l-primary rounded-[9px]' : ''
               }`}
               key={r.userId}
             >
-              <span className={`w-8.5 h-8.5 rounded-full grid place-items-center font-bold ${rankTone(i)}`}>{r.rank}</span>
-              <span className="flex-1 font-semibold">
+              <span className={`w-8.5 h-8.5 rounded-full grid place-items-center ${rankTone(i)}`}>{r.rank}</span>
+              <span className="flex-1 font-semibold text-white">
                 {r.name}
-                {r.userId === user.id && ' (you)'}
+                {r.userId === user.id && <span className="text-primary font-normal ml-1.5">(you)</span>}
               </span>
               <span className="font-bold text-primary">{r.points} pts</span>
             </div>
@@ -84,3 +88,4 @@ export default function LeaderboardPage() {
     </div>
   );
 }
+

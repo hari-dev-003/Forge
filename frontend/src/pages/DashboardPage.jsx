@@ -4,8 +4,12 @@ import { fetchSummary } from '../features/dashboard/dashboardSlice.js';
 import { Card, StatCard, Spinner } from '../components/ui/index.jsx';
 import { ROLES } from '../constants.js';
 
-const RANK_TONE = ['bg-[#fef3c7] text-[#b45309]', 'bg-[#e5e7eb] text-[#4b5563]', 'bg-[#fde4d0] text-[#b45309]'];
-const rankTone = (i) => RANK_TONE[i] || 'bg-surface-2 text-muted';
+const RANK_TONE = [
+  'bg-primary/20 text-primary border border-primary/40 font-extrabold shadow-[0_0_8px_rgba(241,184,17,0.3)]',
+  'bg-white/10 text-white border border-white/20 font-bold',
+  'bg-amber-700/20 text-amber-400 border border-amber-600/30 font-bold',
+];
+const rankTone = (i) => RANK_TONE[i] || 'bg-surface-2 text-muted border border-border';
 
 const STAT_GRID = 'grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4';
 
@@ -15,9 +19,9 @@ function TrendChart({ data = [] }) {
     <div className="flex items-end gap-2.5 h-35 pt-2.5">
       {data.map((d) => (
         <div className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end" key={d.day}>
-          <span className="text-xs font-semibold">{d.count}</span>
+          <span className="text-xs font-semibold text-white">{d.count}</span>
           <div
-            className="w-full max-w-10.5 bg-primary rounded-t-md min-h-1 transition-all"
+            className="w-full max-w-10.5 bg-primary/90 hover:bg-primary rounded-t-md min-h-1 transition-all shadow-[0_0_8px_rgba(241,184,17,0.25)]"
             style={{ height: `${(d.count / max) * 100}%` }}
           />
           <span className="text-[11px] text-muted">{d.day.slice(5)}</span>
@@ -42,7 +46,7 @@ export default function DashboardPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Hi {user.name.split(' ')[0]} 👋</h1>
+        <h1 className="text-2xl font-bold font-heading text-white">Hi {user.name.split(' ')[0]} 👋</h1>
         <p className="text-muted text-sm mt-1">
           {isUser
             ? "Here's your activity today."
@@ -88,9 +92,9 @@ export default function DashboardPage() {
               <p className="text-[13px] text-muted">No approved points yet.</p>
             ) : (
               summary.leaderboardPreview.map((r, i) => (
-                <div className="flex items-center gap-4 px-4 py-3.5 border-b border-border last:border-b-0" key={r.userId}>
-                  <span className={`w-8.5 h-8.5 rounded-full grid place-items-center font-bold ${rankTone(i)}`}>{i + 1}</span>
-                  <span className="flex-1 font-semibold">{r.name}</span>
+                <div className="flex items-center gap-4 px-4 py-3.5 border-b border-border last:border-b-0 hover:bg-white/5 transition-colors rounded-lg" key={r.userId}>
+                  <span className={`w-8.5 h-8.5 rounded-full grid place-items-center ${rankTone(i)}`}>{i + 1}</span>
+                  <span className="flex-1 font-semibold text-white">{r.name}</span>
                   <span className="font-bold text-primary">{r.points} pts</span>
                 </div>
               ))
@@ -101,3 +105,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
