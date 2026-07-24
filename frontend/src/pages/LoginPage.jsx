@@ -49,26 +49,26 @@ export default function LoginPage() {
       <div className="midnight-effect-1" />
       <div className="midnight-effect-2" />
 
-      <div className="bg-gradient-to-br from-[#0c0e17] via-[#121524] to-[#08090d] border-r border-border text-white p-14 flex flex-col justify-center max-[860px]:hidden relative z-10">
+      <div className="bg-gradient-to-br from-hero-from via-hero-via to-hero-to border-r border-border text-white p-14 flex flex-col justify-center max-[860px]:hidden relative z-10">
         <span className="text-primary text-xs font-bold uppercase tracking-widest mb-3">Welcome to Forge</span>
         <h1 className="text-[36px] leading-tight font-extrabold font-heading text-white">
           Turn every field visit into <span className="text-primary drop-shadow-[0_0_12px_rgba(238,179,28,0.4)]">measurable business activity.</span>
         </h1>
-        <p className="mt-4 text-[#9b9db1] text-base max-w-105 leading-relaxed">
+        <p className="mt-4 text-muted text-base max-w-105 leading-relaxed">
           Log verified client meetings, earn points on manager approval, and climb the leaderboard — all from one place.
         </p>
         <div className="mt-10 flex gap-7 pt-6 border-t border-border/40">
           <div className="bg-surface/80 border border-border px-4 py-3 rounded-[12px]">
             <span className="text-[28px] font-extrabold text-primary block font-heading">10</span>
-            <small className="text-[#9b9db1] text-xs">pts / 1-to-1</small>
+            <small className="text-muted text-xs">pts / 1-to-1</small>
           </div>
           <div className="bg-surface/80 border border-border px-4 py-3 rounded-[12px]">
             <span className="text-[28px] font-extrabold text-primary block font-heading">25</span>
-            <small className="text-[#9b9db1] text-xs">pts / group</small>
+            <small className="text-muted text-xs">pts / group</small>
           </div>
           <div className="bg-surface/80 border border-border px-4 py-3 rounded-[12px]">
             <span className="text-[28px] font-extrabold text-success block font-heading">★</span>
-            <small className="text-[#9b9db1] text-xs">live leaderboard</small>
+            <small className="text-muted text-xs">live leaderboard</small>
           </div>
         </div>
       </div>
@@ -76,7 +76,7 @@ export default function LoginPage() {
       <div className="grid place-items-center p-10 pt-[max(40px,env(safe-area-inset-top))] relative z-10">
         <div className="w-full max-w-95 bg-surface/60 border border-border/80 backdrop-blur-md p-8 rounded-[16px] shadow-card">
           <div className="flex items-center gap-2 mb-6">
-            <span className="w-8 h-8 rounded-[8px] bg-primary text-[#08090d] grid place-items-center font-extrabold text-sm shadow-[0_0_10px_rgba(238,179,28,0.4)]">
+            <span className="w-8 h-8 rounded-[8px] bg-primary text-on-primary grid place-items-center font-extrabold text-sm shadow-[0_0_10px_rgba(238,179,28,0.4)]">
               F
             </span>
             <span className="text-lg font-bold text-white font-heading">Forge</span>

@@ -21,8 +21,8 @@ const NAV = [
 const navItemClass = ({ isActive }) =>
   `flex items-center gap-3 px-3 py-2.5 rounded-[9px] text-sm font-medium transition-all duration-200 ${
     isActive
-      ? 'bg-primary text-[#08090d] font-bold shadow-[0_0_12px_rgba(238,179,28,0.35)]'
-      : 'text-[#9b9db1] hover:bg-white/5 hover:text-white'
+      ? 'bg-primary text-on-primary font-bold shadow-[0_0_12px_rgba(238,179,28,0.35)]'
+      : 'text-muted hover:bg-white/5 hover:text-white'
   }`;
 
 export default function AppLayout() {
@@ -46,12 +46,12 @@ export default function AppLayout() {
       <div className="midnight-effect-2" />
 
       <aside
-        className={`w-61 bg-sidebar border-r border-border text-[#9b9db1] flex flex-col fixed inset-y-0 left-0 z-40 pt-[env(safe-area-inset-top)] transition-transform duration-300 ${
+        className={`w-61 bg-sidebar border-r border-border text-muted flex flex-col fixed inset-y-0 left-0 z-40 pt-[env(safe-area-inset-top)] transition-transform duration-300 ${
           open ? 'max-[860px]:translate-x-0' : 'max-[860px]:-translate-x-full'
         }`}
       >
         <div className="flex items-center gap-2.5 px-5 pt-5 pb-6 border-b border-border/40">
-          <span className="w-8.5 h-8.5 rounded-[9px] bg-primary text-[#08090d] grid place-items-center font-extrabold text-sm shadow-[0_0_10px_rgba(238,179,28,0.4)]">
+          <span className="w-8.5 h-8.5 rounded-[9px] bg-primary text-on-primary grid place-items-center font-extrabold text-sm shadow-[0_0_10px_rgba(238,179,28,0.4)]">
             F
           </span>
           <span className="text-base font-semibold text-white font-heading tracking-wide">

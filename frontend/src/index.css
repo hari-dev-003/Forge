@@ -45,6 +45,14 @@
 
   --color-sidebar: #121213;
 
+  --color-hero-from: #0c0e17;
+  --color-hero-via: #121524;
+  --color-hero-to: #08090d;
+
+  --color-bronze: #cd7f32;
+
+  --color-on-primary: #08090d;
+
   --shadow-card: 0 5px 60px rgba(2, 24, 93, 0.08);
 
   --animate-toast-in: toast-in 0.2s ease;

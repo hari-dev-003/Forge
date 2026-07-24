@@ -9,8 +9,8 @@ const BTN_SIZE = {
   sm: 'px-3 py-1.75 text-[13px]',
 };
 const BTN_VARIANT = {
-  primary: 'btn-sheen bg-primary text-[#08090d] font-bold hover:bg-primary-dark shadow-[0_2px_14px_rgba(238,179,28,0.25)]',
-  success: 'btn-sheen bg-success text-[#08090d] font-bold hover:brightness-105',
+  primary: 'btn-sheen bg-primary text-on-primary font-bold hover:bg-primary-dark shadow-[0_2px_14px_rgba(238,179,28,0.25)]',
+  success: 'btn-sheen bg-success text-on-primary font-bold hover:brightness-105',
   danger: 'btn-sheen bg-danger text-white hover:brightness-105',
   ghost: 'bg-transparent text-muted border border-border hover:bg-surface-2 hover:text-ink',
   outline: 'bg-surface text-primary border border-primary/40 hover:bg-primary-soft hover:border-primary',
