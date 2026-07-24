@@ -1,5 +1,6 @@
 import { userRepo } from '../repositories/userRepo.js';
 import { authProvider } from '../auth/index.js';
+import { auditRepo } from '../repositories/auditRepo.js';
 import { ROLES } from '../config/constants.js';
 import { BadRequestError, NotFoundError } from '../lib/errors.js';
 
@@ -17,6 +18,13 @@ export const userService = {
     }
     // Provision in Cognito (credentials + group) and persist the DynamoDB profile.
     const { user } = await authProvider.adminCreateUser(dto);
+    await auditRepo.record({
+      actorId: actor.id,
+      actorRole: actor.role,
+      action: 'USER_CREATED',
+      target: user.id,
+      meta: { email: user.email, role: user.role },
+    });
     return user;
   },
 
@@ -30,6 +38,13 @@ export const userService = {
       role: ROLES.USER,
       managerId: null,
       active: false,
+    });
+    await auditRepo.record({
+      actorId: user.id,
+      actorRole: ROLES.USER,
+      action: 'USER_SIGNUP',
+      target: user.id,
+      meta: { email: user.email },
     });
     return user;
   },
@@ -63,7 +78,15 @@ export const userService = {
     for (const k of ['name', 'region', 'active', 'managerId']) {
       if (patch[k] !== undefined) allowed[k] = patch[k];
     }
-    return userRepo.update(id, allowed);
+    const updated = await userRepo.update(id, allowed);
+    await auditRepo.record({
+      actorId: actor.id,
+      actorRole: actor.role,
+      action: 'USER_UPDATED',
+      target: id,
+      meta: { patch: allowed },
+    });
+    return updated;
   },
 };
 

@@ -24,17 +24,19 @@ export default function SubmitMeetingPage() {
   const { submitStatus, error } = useSelector((s) => s.meetings);
   const [form, setForm] = useState(empty);
   const [file, setFile] = useState(null);
+  const [location, setLocation] = useState(null);
   const isGroup = form.type === MEETING_TYPES.GROUP;
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value });
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!file) return dispatch(pushToast({ message: 'Please attach a meeting photo', type: 'error' }));
+    if (!file || !location) return dispatch(pushToast({ message: 'Please attach a meeting photo (location is captured automatically)', type: 'error' }));
 
     const payload = {
       type: form.type,
       isPremiumClient: form.isPremiumClient,
+      location,
       business: {
         purpose: form.purpose,
         interestLevel: form.interestLevel || null,
@@ -103,7 +105,7 @@ export default function SubmitMeetingPage() {
           </Card>
 
           <Card title="Proof photo">
-            <PhotoUpload onSelect={setFile} />
+            <PhotoUpload onSelect={setFile} onLocation={setLocation} />
           </Card>
         </div>
 

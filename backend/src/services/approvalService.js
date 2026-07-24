@@ -12,19 +12,29 @@ import { BadRequestError, ForbiddenError, NotFoundError, ConflictError } from '.
 
 const REVIEWABLE = [MEETING_STATUS.PENDING, MEETING_STATUS.MODIFICATION_REQUESTED];
 
+/** Stamp each item with derived queue-age fields (oldest submissions surface first). */
+function withAging(items, approvalSlaHours) {
+  const now = Date.now();
+  return items
+    .map((m) => {
+      const ageHours = (now - new Date(m.createdAt).getTime()) / 3_600_000;
+      return { ...m, ageHours: Math.round(ageHours * 10) / 10, slaBreached: ageHours > approvalSlaHours };
+    })
+    .sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1));
+}
+
 export const approvalService = {
-  /** Manager review queue (default PENDING). */
+  /** Manager review queue (default PENDING), oldest-first with SLA-aging metadata. */
   async queue(user, { status = MEETING_STATUS.PENDING, limit } = {}) {
+    const { approvalSlaHours } = await configRepo.getPointsRules();
     if (user.role === ROLES.ADMIN) {
       const all = await meetingRepo.listAll();
-      const filtered = all
-        .filter((m) => m.status === status)
-        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+      const filtered = withAging(all.filter((m) => m.status === status), approvalSlaHours);
       return withPhotoUrls(filtered);
     }
     if (user.role !== ROLES.MANAGER) throw new ForbiddenError();
     const items = await meetingRepo.listByManagerStatus(user.id, status, { limit });
-    return withPhotoUrls(items);
+    return withPhotoUrls(withAging(items, approvalSlaHours));
   },
 
   /**
@@ -33,7 +43,7 @@ export const approvalService = {
    * totals — all in ONE transaction guarded by the current status, so points
    * can never be double-awarded on retries or concurrent clicks.
    */
-  async decide(user, meetingId, { decision, reason }) {
+  async decide(user, meetingId, { decision, reason, qualityScore }) {
     const meeting = await meetingRepo.getById(meetingId);
     if (!meeting) throw new NotFoundError('Meeting not found');
     if (user.role !== ROLES.ADMIN && !(user.role === ROLES.MANAGER && canAccess(user, meeting))) {
@@ -44,7 +54,14 @@ export const approvalService = {
     }
 
     const reviewedAt = new Date().toISOString();
-    const review = { reviewerId: user.id, reviewerName: user.name, decision, reason: reason || '', reviewedAt };
+    const review = {
+      reviewerId: user.id,
+      reviewerName: user.name,
+      decision,
+      reason: reason || '',
+      reviewedAt,
+      ...(decision === 'APPROVE' && qualityScore ? { qualityScore } : {}),
+    };
     const store = getStore();
 
     if (decision === 'APPROVE') {

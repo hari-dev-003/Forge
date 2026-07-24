@@ -100,6 +100,13 @@ const PATHS = {
       <circle cx="12" cy="7" r="4" />
     </>
   ),
+  history: (
+    <>
+      <path d="M3 12a9 9 0 1 0 2.64-6.36" />
+      <path d="M3 3v6h6" />
+      <path d="M12 7v5l4 2" />
+    </>
+  ),
 };
 
 export default function Icon({ name, size = 20, className = '', ...props }) {

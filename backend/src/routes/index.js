@@ -7,6 +7,7 @@ import leaderboardRoutes from './leaderboardRoutes.js';
 import dashboardRoutes from './dashboardRoutes.js';
 import uploadRoutes from './uploadRoutes.js';
 import configRoutes from './configRoutes.js';
+import auditRoutes from './auditRoutes.js';
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.use('/leaderboard', leaderboardRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/uploads', uploadRoutes);
 router.use('/config', configRoutes);
+router.use('/audit', auditRoutes);
 
 export default router;

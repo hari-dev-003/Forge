@@ -14,9 +14,9 @@ export const fetchQueue = createAsyncThunk(
 
 export const decideMeeting = createAsyncThunk(
   'approvals/decide',
-  async ({ id, decision, reason }, { rejectWithValue }) => {
+  async ({ id, decision, reason, qualityScore }, { rejectWithValue }) => {
     try {
-      return unwrap(await api.post(`/meetings/${id}/decision`, { decision, reason })).meeting;
+      return unwrap(await api.post(`/meetings/${id}/decision`, { decision, reason, qualityScore })).meeting;
     } catch (e) {
       return rejectWithValue(apiError(e));
     }

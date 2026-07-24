@@ -1,6 +1,7 @@
 import { meetingRepo } from '../repositories/meetingRepo.js';
 import { userRepo } from '../repositories/userRepo.js';
 import { leaderboardRepo } from '../repositories/leaderboardRepo.js';
+import { configRepo } from '../repositories/configRepo.js';
 import { ROLES, MEETING_STATUS, MEETING_TYPES, LEADERBOARD_SCOPES } from '../config/constants.js';
 import { dayKey } from '../lib/ids.js';
 
@@ -20,6 +21,14 @@ function tally(meetings) {
   const reviewed = byStatus.APPROVED + byStatus.REJECTED;
   const approvalRate = reviewed ? Math.round((byStatus.APPROVED / reviewed) * 100) : 0;
   return { total: meetings.length, today, byStatus, byType, approvalRate };
+}
+
+/** Count of PENDING meetings that have waited past the configured SLA. */
+function pendingAgingCount(meetings, approvalSlaHours) {
+  const now = Date.now();
+  return meetings.filter(
+    (m) => m.status === MEETING_STATUS.PENDING && (now - new Date(m.createdAt).getTime()) / 3_600_000 > approvalSlaHours
+  ).length;
 }
 
 /** Last 7 days of meeting counts, oldest -> newest. */
@@ -64,6 +73,8 @@ export const dashboardService = {
     const board = await leaderboardRepo.getBoard(LEADERBOARD_SCOPES.ALLTIME);
     const topPerformer = board[0] || null;
 
+    const { approvalSlaHours } = await configRepo.getPointsRules();
+
     return {
       role: user.role,
       kpis,
@@ -72,6 +83,7 @@ export const dashboardService = {
         teamSize: team.length,
         managers: managers.length,
         pendingReviews: kpis.byStatus.PENDING,
+        pendingAging: pendingAgingCount(meetings, approvalSlaHours),
       },
       topPerformer,
       leaderboardPreview: board.slice(0, 5),

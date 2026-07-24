@@ -15,6 +15,7 @@ const NAV = [
   { to: '/leaderboard', label: 'Leaderboard', icon: 'trophy', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.USER] },
   { to: '/team', label: 'Team', icon: 'users', roles: [ROLES.MANAGER, ROLES.ADMIN] },
   { to: '/config', label: 'Points Rules', icon: 'sliders', roles: [ROLES.ADMIN] },
+  { to: '/audit', label: 'Audit Log', icon: 'history', roles: [ROLES.ADMIN] },
 ];
 
 const navItemClass = ({ isActive }) =>

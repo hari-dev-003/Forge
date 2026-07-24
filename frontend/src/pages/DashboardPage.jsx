@@ -2,34 +2,12 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchSummary } from '../features/dashboard/dashboardSlice.js';
 import { Card, StatCard, Spinner } from '../components/ui/index.jsx';
+import LineChart from '../components/charts/LineChart.jsx';
+import DonutChart from '../components/charts/DonutChart.jsx';
+import BarChart from '../components/charts/BarChart.jsx';
 import { ROLES } from '../constants.js';
 
-const RANK_TONE = [
-  'bg-primary/20 text-primary border border-primary/40 font-extrabold shadow-[0_0_8px_rgba(238,179,28,0.3)]',
-  'bg-white/10 text-white border border-white/20 font-bold',
-  'bg-amber-700/20 text-amber-400 border border-amber-600/30 font-bold',
-];
-const rankTone = (i) => RANK_TONE[i] || 'bg-surface-2 text-muted border border-border';
-
 const STAT_GRID = 'grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4';
-
-function TrendChart({ data = [] }) {
-  const max = Math.max(1, ...data.map((d) => d.count));
-  return (
-    <div className="flex items-end gap-2.5 h-35 pt-2.5">
-      {data.map((d) => (
-        <div className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end" key={d.day}>
-          <span className="text-xs font-semibold text-white">{d.count}</span>
-          <div
-            className="w-full max-w-10.5 bg-primary/90 hover:bg-primary rounded-t-md min-h-1 transition-all shadow-[0_0_8px_rgba(238,179,28,0.25)]"
-            style={{ height: `${(d.count / max) * 100}%` }}
-          />
-          <span className="text-[11px] text-muted">{d.day.slice(5)}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 export default function DashboardPage() {
   const dispatch = useDispatch();
@@ -68,40 +46,43 @@ export default function DashboardPage() {
           <>
             <StatCard label={user.role === ROLES.ADMIN ? 'Field users' : 'Team size'} value={summary.counts?.teamSize ?? 0} accent="blue" />
             {user.role === ROLES.ADMIN && <StatCard label="Managers" value={summary.counts?.managers ?? 0} accent="indigo" />}
+            <StatCard label="Pending > SLA" value={summary.counts?.pendingAging ?? 0} sub="awaiting review too long" accent="amber" />
           </>
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4 max-[860px]:grid-cols-1">
+      <div className="grid grid-cols-2 gap-4 mb-5 max-[860px]:grid-cols-1">
         <Card title="Meetings — last 7 days">
-          <TrendChart data={summary.trend} />
+          <LineChart data={summary.trend} />
         </Card>
-
-        {isUser ? (
-          <Card title="Status breakdown">
-            <div className={STAT_GRID}>
-              <StatCard label="Approved" value={k.byStatus.APPROVED} accent="green" />
-              <StatCard label="Rejected" value={k.byStatus.REJECTED} accent="amber" />
-              <StatCard label="1-to-1" value={k.byType.ONE_TO_ONE} accent="blue" />
-              <StatCard label="Group" value={k.byType.GROUP} accent="indigo" />
-            </div>
-          </Card>
-        ) : (
-          <Card title="Top performers">
-            {(summary.leaderboardPreview || []).length === 0 ? (
-              <p className="text-[13px] text-muted">No approved points yet.</p>
-            ) : (
-              summary.leaderboardPreview.map((r, i) => (
-                <div className="flex items-center gap-4 px-4 py-3.5 border-b border-border last:border-b-0 hover:bg-white/5 transition-colors rounded-lg" key={r.userId}>
-                  <span className={`w-8.5 h-8.5 rounded-full grid place-items-center ${rankTone(i)}`}>{i + 1}</span>
-                  <span className="flex-1 font-semibold text-white">{r.name}</span>
-                  <span className="font-bold text-primary">{r.points} pts</span>
-                </div>
-              ))
-            )}
-          </Card>
-        )}
+        <Card title="Meeting type distribution">
+          <DonutChart
+            data={[
+              { name: '1-to-1', value: k.byType.ONE_TO_ONE },
+              { name: 'Group', value: k.byType.GROUP },
+            ]}
+          />
+        </Card>
       </div>
+
+      {isUser ? (
+        <Card title="Status breakdown">
+          <div className={STAT_GRID}>
+            <StatCard label="Approved" value={k.byStatus.APPROVED} accent="green" />
+            <StatCard label="Rejected" value={k.byStatus.REJECTED} accent="amber" />
+            <StatCard label="1-to-1" value={k.byType.ONE_TO_ONE} accent="blue" />
+            <StatCard label="Group" value={k.byType.GROUP} accent="indigo" />
+          </div>
+        </Card>
+      ) : (
+        <Card title="Top performers">
+          {(summary.leaderboardPreview || []).length === 0 ? (
+            <p className="text-[13px] text-muted">No approved points yet.</p>
+          ) : (
+            <BarChart data={summary.leaderboardPreview} height={Math.max(160, summary.leaderboardPreview.length * 42)} />
+          )}
+        </Card>
+      )}
     </div>
   );
 }

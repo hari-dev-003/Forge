@@ -6,6 +6,7 @@ import leaderboardReducer from '../features/leaderboard/leaderboardSlice.js';
 import dashboardReducer from '../features/dashboard/dashboardSlice.js';
 import usersReducer from '../features/users/usersSlice.js';
 import configReducer from '../features/config/configSlice.js';
+import auditReducer from '../features/audit/auditSlice.js';
 import uiReducer from '../features/ui/uiSlice.js';
 
 export const store = configureStore({
@@ -17,6 +18,7 @@ export const store = configureStore({
     dashboard: dashboardReducer,
     users: usersReducer,
     config: configReducer,
+    audit: auditReducer,
     ui: uiReducer,
   },
 });

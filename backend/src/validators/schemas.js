@@ -56,11 +56,10 @@ export const createMeetingSchema = z
   .object({
     type: z.enum([MEETING_TYPES.ONE_TO_ONE, MEETING_TYPES.GROUP]),
     photo: z.object({ key: z.string().min(1), caption: z.string().optional().default('') }),
-    location: z
-      .object({ lat: z.number(), lng: z.number() })
-      .partial()
-      .optional()
-      .nullable(),
+    location: z.object({
+      lat: z.number().min(-90).max(90),
+      lng: z.number().min(-180).max(180),
+    }),
     isPremiumClient: z.boolean().optional().default(false),
     occurredAt: z.string().datetime().optional(),
     customer: oneToOne.optional(),
@@ -84,6 +83,7 @@ export const createMeetingSchema = z
 export const decisionSchema = z.object({
   decision: z.enum(['APPROVE', 'REJECT', 'REQUEST_MODIFICATION']),
   reason: z.string().max(500).optional(),
+  qualityScore: z.number().int().min(1).max(5).optional(),
 });
 
 export const pointsRulesSchema = z.object({
@@ -95,6 +95,7 @@ export const pointsRulesSchema = z.object({
   earlySubmissionBeforeHour: z.number().min(0).max(23).default(12),
   lateSubmissionAfterHours: z.number().min(0).default(24),
   duplicateWindowDays: z.number().min(0).default(7),
+  approvalSlaHours: z.number().min(0).default(24),
 });
 
 export const leaderboardQuerySchema = z.object({
@@ -113,4 +114,10 @@ export const queueQuerySchema = z.object({
       MEETING_STATUS.MODIFICATION_REQUESTED,
     ])
     .default(MEETING_STATUS.PENDING),
+});
+
+export const auditQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(500).optional(),
+  actorId: z.string().optional(),
+  action: z.string().optional(),
 });

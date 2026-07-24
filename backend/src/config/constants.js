@@ -43,4 +43,6 @@ export const DEFAULT_POINTS_RULES = Object.freeze({
   lateSubmissionAfterHours: 24,
   // Same customer phone within this window scores 0 (optional business rule).
   duplicateWindowDays: 7,
+  // A pending review is "aged"/SLA-breached once it's waited longer than this.
+  approvalSlaHours: 24,
 });

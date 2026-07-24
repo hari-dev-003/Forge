@@ -10,11 +10,12 @@ export default function ReviewQueuePage() {
   const { queue, status, decidingId } = useSelector((s) => s.approvals);
   const [rejectFor, setRejectFor] = useState(null);
   const [reason, setReason] = useState('');
+  const [ratings, setRatings] = useState({});
 
   useEffect(() => { dispatch(fetchQueue('PENDING')); }, [dispatch]);
 
-  const decide = async (id, decision, why) => {
-    const res = await dispatch(decideMeeting({ id, decision, reason: why }));
+  const decide = async (id, decision, why, qualityScore) => {
+    const res = await dispatch(decideMeeting({ id, decision, reason: why, qualityScore }));
     if (res.meta.requestStatus === 'fulfilled') {
       const pts = res.payload.points?.awarded;
       dispatch(pushToast({
@@ -64,7 +65,27 @@ export default function ReviewQueuePage() {
                 </div>
               ) : (
                 <>
-                  <Button variant="success" size="sm" loading={decidingId === m.meetingId} onClick={() => decide(m.meetingId, 'APPROVE')}>
+                  <div className="flex items-center gap-0.5" aria-label="Quality rating">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        className={`text-lg leading-none cursor-pointer transition-colors ${
+                          n <= (ratings[m.meetingId] || 0) ? 'text-primary' : 'text-muted/40 hover:text-muted'
+                        }`}
+                        onClick={() => setRatings({ ...ratings, [m.meetingId]: n === ratings[m.meetingId] ? 0 : n })}
+                        title={`${n} star${n > 1 ? 's' : ''}`}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
+                  <Button
+                    variant="success"
+                    size="sm"
+                    loading={decidingId === m.meetingId}
+                    onClick={() => decide(m.meetingId, 'APPROVE', undefined, ratings[m.meetingId] || undefined)}
+                  >
                     ✓ Approve
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => { setRejectFor(m.meetingId); setReason(''); }}>

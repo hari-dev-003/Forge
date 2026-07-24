@@ -19,6 +19,17 @@ export const auditRepo = {
       ts,
     });
   },
+
+  /** Admin-only read path: newest first, optionally filtered by actor/action. */
+  async list({ limit = 100, actorId, action } = {}) {
+    const store = getStore();
+    const items = await store.scan({ typeEquals: 'AUDIT' });
+    const filtered = items
+      .filter((i) => (actorId ? i.actorId === actorId : true))
+      .filter((i) => (action ? i.action === action : true))
+      .sort((a, b) => (a.ts < b.ts ? 1 : -1));
+    return filtered.slice(0, limit).map(({ pk, sk, entity, ...rest }) => rest);
+  },
 };
 
 export default auditRepo;

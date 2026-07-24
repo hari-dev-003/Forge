@@ -172,17 +172,17 @@ These decisions change the architecture, not just the code.
     "thumbKey": "thumbs/2026/07/uuid.jpg",
     "uploadedAt": "ISO", "sizeBytes": 0, "caption": "…"
   },
-  "location": { "lat": 0.0, "lng": 0.0 },   // OPTIONAL — for map views only, not verification
+  "location": { "lat": 0.0, "lng": 0.0 },   // REQUIRED — captured from the device at upload time, burned into the photo watermark
   "business": { "purpose": "…", "interestLevel": "HIGH|MED|LOW",
                 "followUpRequired": true, "priority": "…", "outcome": "…", "remarks": "…" },
   "status": "PENDING | APPROVED | REJECTED | MODIFICATION_REQUESTED",
-  "review": { "reviewerId": "…", "reviewedAt": "ISO", "reason": "…" },
+  "review": { "reviewerId": "…", "reviewedAt": "ISO", "reason": "…", "qualityScore": "1-5, optional" },
   "points":  { "awarded": 0, "ruleVersion": "v3", "breakdown": [] },
   "createdAt": "ISO", "submissionId": "…"
 }
 ```
 
-> **Location is optional metadata only.** If you want the "Meeting Locations" map and region charts, you can capture device GPS at submission time (best-effort) *or* derive region purely from the user's profile. It no longer gates approval.
+> **Location is required.** As of Phase 1, the photo upload flow captures the device's real GPS position at submission time and burns a timestamp + lat/lng watermark into the image client-side before it uploads (see §6.2). This is not a live-camera lock — the existing gallery/file picker is kept — but `location` is now a mandatory field, not optional metadata.
 
 ---
 
@@ -200,23 +200,24 @@ These decisions change the architecture, not just the code.
 ### 6.2 Meeting Submission (the heart)
 Flow:
 1. User picks type (1:1 or Group) and fills the form.
-2. User **selects/uploads a photo from their gallery** (taken during the meeting).
-3. App requests a **presigned S3 URL** → uploads the photo directly to S3.
-4. *(Optional)* `ObjectCreated` triggers a Lambda to generate a **thumbnail** for fast dashboard/gallery loading.
-5. App submits the meeting (referencing the S3 key + form details, optional GPS) to the API.
-6. Server validates required fields, writes the meeting as `PENDING`.
+2. User **selects/uploads a photo** (the gallery/file picker is kept — this is intentionally not a locked-down live camera capture).
+3. The app captures the device's current GPS position and burns a timestamp + lat/lng watermark bar into the bottom of the image client-side (canvas), before anything is uploaded.
+4. App requests a **presigned S3 URL** → uploads the watermarked photo directly to S3.
+5. *(Optional)* `ObjectCreated` triggers a Lambda to generate a **thumbnail** for fast dashboard/gallery loading.
+6. App submits the meeting (referencing the S3 key + form details + the captured GPS location, now required) to the API.
+7. Server validates required fields (including `location`), writes the meeting as `PENDING`.
 
-*No camera lock, no watermark, no fraud checks — simple gallery upload.*
+*Still no live camera lock and no automated fraud detection — the photo carries a visible GPS/timestamp watermark as documentary evidence, and the manager remains the verifier.*
 
 ### 6.3 Approval Workflow (the trust layer)
-- Manager review queue = GSI query on `MGR#<id>#STATUS#PENDING`.
+- Manager review queue = GSI query on `MGR#<id>#STATUS#PENDING`, sorted **oldest-first** with derived aging metadata (`ageHours`, `slaBreached` against the admin-configurable `approvalSlaHours`) so overdue reviews surface first.
 - Manager sees the **photo + all details** and decides.
-- Actions: **Approve** / **Reject (reason required)** / **Request Modification**.
+- Actions: **Approve** (optionally with a 1–5 **quality score**) / **Reject (reason required)** / **Request Modification**.
 - On **Approve** → **Points Engine** runs inside a **DynamoDB transaction**:
   - write approval event, append points ledger line(s), increment leaderboard totals, flip status — **all-or-nothing, idempotent** (guarded by meeting status condition).
 - On **Reject** → status flips, reason stored, 0 points, user notified.
 
-> With automated verification removed, the **manager's judgment on the photo is the verification.** The workflow must make that review fast and clear (big photo, all fields, one-tap approve/reject).
+> With automated verification removed, the **manager's judgment on the photo is the verification.** The workflow must make that review fast and clear (big photo, all fields, one-tap approve/reject) — now with aging/SLA visibility so pending reviews don't sit forever.
 
 ### 6.4 Points Engine (configurable rules)
 - Rules live in `CONFIG / POINTS_RULES`, **versioned**, editable by Admin — **never hardcoded**.

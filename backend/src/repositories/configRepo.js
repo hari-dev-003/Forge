@@ -14,7 +14,9 @@ export const configRepo = {
   async getPointsRules() {
     const store = getStore();
     const item = await store.getItem(K.configPk(), K.configSk(POINTS_RULES));
-    return item ? strip(item).rules : DEFAULT_POINTS_RULES;
+    // Merge over the defaults so newly-added rule fields (e.g. approvalSlaHours)
+    // apply even to orgs whose stored config predates that field.
+    return item ? { ...DEFAULT_POINTS_RULES, ...strip(item).rules } : DEFAULT_POINTS_RULES;
   },
 
   async setPointsRules(rules) {

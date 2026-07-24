@@ -36,7 +36,14 @@ export default function MeetingCard({ meeting, showEmployee, children }) {
             </span>
             <h4 className="text-base mt-1 font-semibold">{title || 'Untitled meeting'}</h4>
           </div>
-          <Badge status={meeting.status} />
+          <div className="flex flex-col items-end gap-1.5">
+            <Badge status={meeting.status} />
+            {meeting.slaBreached && (
+              <span className="text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-danger-soft text-danger">
+                {Math.round(meeting.ageHours)}h — overdue
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-3.5 mt-2.5 text-[13px] text-muted">
@@ -53,8 +60,16 @@ export default function MeetingCard({ meeting, showEmployee, children }) {
         {meeting.business?.purpose && <p className="mt-2.5 text-[13px] text-ink">{meeting.business.purpose}</p>}
 
         {meeting.status === 'APPROVED' && (
-          <div className="inline-block mt-2.5 bg-success-soft text-success font-bold px-3 py-1 rounded-lg text-sm">
-            +{meeting.points?.awarded ?? 0} pts
+          <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+            <div className="inline-block bg-success-soft text-success font-bold px-3 py-1 rounded-lg text-sm">
+              +{meeting.points?.awarded ?? 0} pts
+            </div>
+            {meeting.review?.qualityScore && (
+              <div className="inline-flex items-center gap-0.5 text-primary text-sm" title={`Quality: ${meeting.review.qualityScore}/5`}>
+                {'★'.repeat(meeting.review.qualityScore)}
+                <span className="text-muted/40">{'★'.repeat(5 - meeting.review.qualityScore)}</span>
+              </div>
+            )}
           </div>
         )}
         {meeting.review?.reason && meeting.status !== 'APPROVED' && (

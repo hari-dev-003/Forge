@@ -16,6 +16,7 @@ import ReviewQueuePage from './pages/ReviewQueuePage.jsx';
 import LeaderboardPage from './pages/LeaderboardPage.jsx';
 import TeamPage from './pages/TeamPage.jsx';
 import PointsConfigPage from './pages/PointsConfigPage.jsx';
+import AuditLogPage from './pages/AuditLogPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 
 export default function App() {
@@ -50,6 +51,7 @@ export default function App() {
 
             <Route element={<ProtectedRoute roles={[ROLES.ADMIN]} />}>
               <Route path="config" element={<PointsConfigPage />} />
+              <Route path="audit" element={<AuditLogPage />} />
             </Route>
           </Route>
         </Route>
