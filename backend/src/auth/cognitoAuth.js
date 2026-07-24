@@ -14,13 +14,14 @@ import {
   AdminCreateUserCommand,
   AdminSetUserPasswordCommand,
   AdminAddUserToGroupCommand,
+  AdminDeleteUserCommand,
   CreateGroupCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
 import { env, awsClientConfig } from '../config/env.js';
 import { userRepo } from '../repositories/userRepo.js';
 import { ROLES } from '../config/constants.js';
-import { BadRequestError, UnauthorizedError, ConflictError } from '../lib/errors.js';
+import { BadRequestError, UnauthorizedError, ConflictError, ForbiddenError } from '../lib/errors.js';
 
 const client = new CognitoIdentityProviderClient(awsClientConfig(env.cognito.region));
 
@@ -85,6 +86,9 @@ export const cognitoAuth = {
 
     const principal = await cognitoAuth.verify(token);
     const profile = (await userRepo.getById(principal.id)) || principal;
+    if (profile.active === false) {
+      throw new ForbiddenError('Your account is pending admin approval');
+    }
     return { user: profile, token };
   },
 
@@ -109,15 +113,30 @@ export const cognitoAuth = {
 
   /** Admin-provision a user: create in Cognito, set a permanent password, add to
    *  the role group, and persist the app profile in DynamoDB. */
-  async adminCreateUser({ email, password, name, role = ROLES.USER, managerId = null, region = null }) {
+  async adminCreateUser({
+    email,
+    password,
+    name,
+    role = ROLES.USER,
+    managerId = null,
+    region = null,
+    userId = null,
+    active = true,
+  }) {
     if (!email || !password) throw new BadRequestError('email and password are required');
+
+    // This user pool has `email` as an alias attribute, so Cognito rejects an
+    // email-format Username at creation time (AliasExistsException-adjacent
+    // InvalidParameterException). Use a sanitized Username instead — sign-in
+    // still works via the email alias in login() below.
+    const cognitoUsername = email.replace(/@/g, '_at_').replace(/[^a-zA-Z0-9_.-]/g, '_');
 
     let created;
     try {
       created = await client.send(
         new AdminCreateUserCommand({
           UserPoolId: env.cognito.userPoolId,
-          Username: email,
+          Username: cognitoUsername,
           MessageAction: 'SUPPRESS', // no invite email — we set the password directly
           UserAttributes: [
             { Name: 'email', Value: email },
@@ -135,35 +154,48 @@ export const cognitoAuth = {
 
     const sub = created.User?.Attributes?.find((a) => a.Name === 'sub')?.Value;
 
-    await client.send(
-      new AdminSetUserPasswordCommand({
-        UserPoolId: env.cognito.userPoolId,
-        Username: email,
-        Password: password,
-        Permanent: true,
-      })
-    );
+    // From here on, roll back the Cognito user on any failure so a retry with
+    // the same email doesn't hit a stale, half-provisioned account (409).
+    try {
+      await client.send(
+        new AdminSetUserPasswordCommand({
+          UserPoolId: env.cognito.userPoolId,
+          Username: cognitoUsername,
+          Password: password,
+          Permanent: true,
+        })
+      );
 
-    await client.send(
-      new AdminAddUserToGroupCommand({
-        UserPoolId: env.cognito.userPoolId,
-        Username: email,
-        GroupName: GROUP_FOR_ROLE[role] || 'User',
-      })
-    );
+      await client.send(
+        new AdminAddUserToGroupCommand({
+          UserPoolId: env.cognito.userPoolId,
+          Username: cognitoUsername,
+          GroupName: GROUP_FOR_ROLE[role] || 'User',
+        })
+      );
 
-    const user = {
-      id: sub,
-      email: email.toLowerCase(),
-      name: name || email,
-      role,
-      managerId,
-      region,
-      active: true,
-      createdAt: new Date().toISOString(),
-    };
-    await userRepo.create(user);
-    return { user };
+      const user = {
+        id: sub,
+        email: email.toLowerCase(),
+        name: name || email,
+        role,
+        managerId,
+        region,
+        userId,
+        active,
+        createdAt: new Date().toISOString(),
+      };
+      await userRepo.create(user);
+      return { user };
+    } catch (e) {
+      await client
+        .send(new AdminDeleteUserCommand({ UserPoolId: env.cognito.userPoolId, Username: cognitoUsername }))
+        .catch(() => {});
+      if (e.name === 'InvalidPasswordException') {
+        throw new BadRequestError(`Password does not meet requirements: ${e.message}`);
+      }
+      throw e;
+    }
   },
 
   /** Idempotently ensure a Cognito group exists (bootstrap helper). */

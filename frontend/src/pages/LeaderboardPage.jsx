@@ -11,7 +11,7 @@ const SCOPES = [
 ];
 
 const RANK_TONE = [
-  'bg-primary/20 text-primary border border-primary/40 font-extrabold shadow-[0_0_8px_rgba(241,184,17,0.3)]',
+  'bg-primary/20 text-primary border border-primary/40 font-extrabold shadow-[0_0_8px_rgba(238,179,28,0.3)]',
   'bg-white/10 text-white border border-white/20 font-bold',
   'bg-amber-700/20 text-amber-400 border border-amber-600/30 font-bold',
 ];
@@ -52,7 +52,7 @@ export default function LeaderboardPage() {
                 key={s.key}
                 className={`px-3 py-1.75 text-[13px] rounded-[9px] font-semibold cursor-pointer transition-all duration-200 ${
                   scope === s.key
-                    ? 'bg-primary text-[#08090d] font-bold shadow-[0_0_10px_rgba(241,184,17,0.3)]'
+                    ? 'bg-primary text-[#08090d] font-bold shadow-[0_0_10px_rgba(238,179,28,0.3)]'
                     : 'bg-transparent text-muted border border-border hover:bg-surface-2 hover:text-white'
                 }`}
                 onClick={() => dispatch(fetchBoard(s.key))}

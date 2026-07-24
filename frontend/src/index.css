@@ -1,15 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 @import "tailwindcss";
 
-/* ─── Exact CSS Root Variables from rasibiz.com/sigma_template ─── */
+/* ─── Root design tokens — dark-luxury/amber palette ─── */
 :root {
-  --main-color: #f1b811;
-  --primary-color: #25262f;
-  --secondary-color: #262222;
-  --text-color: #b0aac0;
-  --meta-text-color: #9b9db1;
+  --main-color: #eeb31c;
+  --primary-color: #24242f;
+  --secondary-color: #252020;
+  --text-color: #aea8be;
+  --meta-text-color: #9a9cb0;
   --section-bg: #000000;
-  --main-border: rgba(204, 211, 217, 0.2);
+  --main-border: rgba(206, 212, 219, 0.2);
 }
 
 ::selection {
@@ -17,8 +17,7 @@
   color: #ffffff;
 }
 
-/* ─── Sigma Template / Forge design tokens ──────────────
-   Exact typography and color palette from rasibiz.com/sigma_template
+/* ─── Forge design tokens — dark-luxury/amber premium-fintech palette ───
    Primary Font: Jost (Weights 100-900)
    Secondary Font: Open Sans (Weights 300-800) */
 @theme {
@@ -32,9 +31,9 @@
   --color-ink: #ffffff;
   --color-muted: #9b9db1;
 
-  --color-primary: #f1b811;
-  --color-primary-dark: #d49e0a;
-  --color-primary-soft: rgba(241, 184, 17, 0.15);
+  --color-primary: #eeb31c;
+  --color-primary-dark: #cb960e;
+  --color-primary-soft: rgba(238, 179, 28, 0.15);
 
   --color-success: #80db66;
   --color-success-soft: rgba(128, 219, 102, 0.15);
@@ -120,7 +119,7 @@
   }
 }
 
-/* Sigma Template Button Sheen Micro-interaction */
+/* Button hover-sheen micro-interaction */
 .btn-sheen {
   position: relative;
   overflow: hidden;
@@ -143,7 +142,7 @@
   left: 120%;
 }
 
-/* Sigma Template Radial Ambient Lighting Glows */
+/* Radial ambient lighting glow blobs (premium dark-theme accent) */
 .midnight-effect-1 {
   position: fixed;
   top: -15%;
@@ -152,7 +151,7 @@
   height: 50vw;
   max-width: 600px;
   max-height: 600px;
-  background: radial-gradient(circle, rgba(241, 184, 17, 0.07) 0%, rgba(0,0,0,0) 70%);
+  background: radial-gradient(circle, rgba(238, 179, 28, 0.07) 0%, rgba(0,0,0,0) 70%);
   pointer-events: none;
   z-index: 0;
 }

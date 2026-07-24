@@ -20,6 +20,20 @@ export const userService = {
     return user;
   },
 
+  /** Public self-signup — always a field user (Employee), inactive until an admin approves them. */
+  async signup(dto) {
+    const { user } = await authProvider.adminCreateUser({
+      email: dto.email,
+      password: dto.password,
+      name: dto.name,
+      userId: dto.userId,
+      role: ROLES.USER,
+      managerId: null,
+      active: false,
+    });
+    return user;
+  },
+
   async getProfile(id) {
     const user = await userRepo.getById(id);
     if (!user) throw new NotFoundError('User not found');

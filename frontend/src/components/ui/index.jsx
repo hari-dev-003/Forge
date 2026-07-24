@@ -9,7 +9,7 @@ const BTN_SIZE = {
   sm: 'px-3 py-1.75 text-[13px]',
 };
 const BTN_VARIANT = {
-  primary: 'btn-sheen bg-primary text-[#08090d] font-bold hover:bg-primary-dark shadow-[0_2px_14px_rgba(241,184,17,0.25)]',
+  primary: 'btn-sheen bg-primary text-[#08090d] font-bold hover:bg-primary-dark shadow-[0_2px_14px_rgba(238,179,28,0.25)]',
   success: 'btn-sheen bg-success text-[#08090d] font-bold hover:brightness-105',
   danger: 'btn-sheen bg-danger text-white hover:brightness-105',
   ghost: 'bg-transparent text-muted border border-border hover:bg-surface-2 hover:text-ink',
@@ -47,7 +47,7 @@ export function Card({ title, actions, children, className = '' }) {
 }
 
 const STAT_ACCENT = {
-  indigo: 'before:bg-primary before:shadow-[0_0_8px_rgba(241,184,17,0.6)]',
+  indigo: 'before:bg-primary before:shadow-[0_0_8px_rgba(238,179,28,0.6)]',
   green: 'before:bg-success before:shadow-[0_0_8px_rgba(128,219,102,0.6)]',
   amber: 'before:bg-warning before:shadow-[0_0_8px_rgba(245,158,11,0.6)]',
   blue: 'before:bg-info before:shadow-[0_0_8px_rgba(59,130,246,0.6)]',

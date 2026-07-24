@@ -5,7 +5,7 @@ import { Card, StatCard, Spinner } from '../components/ui/index.jsx';
 import { ROLES } from '../constants.js';
 
 const RANK_TONE = [
-  'bg-primary/20 text-primary border border-primary/40 font-extrabold shadow-[0_0_8px_rgba(241,184,17,0.3)]',
+  'bg-primary/20 text-primary border border-primary/40 font-extrabold shadow-[0_0_8px_rgba(238,179,28,0.3)]',
   'bg-white/10 text-white border border-white/20 font-bold',
   'bg-amber-700/20 text-amber-400 border border-amber-600/30 font-bold',
 ];
@@ -21,7 +21,7 @@ function TrendChart({ data = [] }) {
         <div className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end" key={d.day}>
           <span className="text-xs font-semibold text-white">{d.count}</span>
           <div
-            className="w-full max-w-10.5 bg-primary/90 hover:bg-primary rounded-t-md min-h-1 transition-all shadow-[0_0_8px_rgba(241,184,17,0.25)]"
+            className="w-full max-w-10.5 bg-primary/90 hover:bg-primary rounded-t-md min-h-1 transition-all shadow-[0_0_8px_rgba(238,179,28,0.25)]"
             style={{ height: `${(d.count / max) * 100}%` }}
           />
           <span className="text-[11px] text-muted">{d.day.slice(5)}</span>

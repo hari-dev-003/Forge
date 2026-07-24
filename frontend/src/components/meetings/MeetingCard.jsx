@@ -29,7 +29,7 @@ export default function MeetingCard({ meeting, showEmployee, children }) {
           <div>
             <span
               className={`text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${
-                isGroup ? 'bg-[#e9f7f0] text-success' : 'bg-primary-soft text-primary'
+                isGroup ? 'bg-success-soft text-success' : 'bg-primary-soft text-primary'
               }`}
             >
               {isGroup ? 'Group' : '1-to-1'}

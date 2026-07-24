@@ -59,3 +59,5 @@ main().catch((e) => {
   logger.error('Failed to start server', { message: e.message, stack: e.stack });
   process.exit(1);
 });
+// Trigger nodemon restart to pick up latest .env changes
+

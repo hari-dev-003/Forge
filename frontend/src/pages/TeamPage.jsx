@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUsers, fetchManagers, createUser, resetCreate } from '../features/users/usersSlice.js';
+import { fetchUsers, fetchManagers, createUser, updateUser, resetCreate } from '../features/users/usersSlice.js';
 import { pushToast } from '../features/ui/uiSlice.js';
 import { Card, Button, Field, Input, Select, Spinner, EmptyState, Badge } from '../components/ui/index.jsx';
 import { ROLES } from '../constants.js';
@@ -23,6 +23,15 @@ export default function TeamPage() {
   }, [dispatch, isAdmin]);
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+
+  const approve = async (u) => {
+    const res = await dispatch(updateUser({ id: u.id, patch: { active: true } }));
+    if (res.meta.requestStatus === 'fulfilled') {
+      dispatch(pushToast({ message: `${u.name} approved`, type: 'success' }));
+    } else {
+      dispatch(pushToast({ message: res.payload || 'Failed to approve', type: 'error' }));
+    }
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -92,16 +101,28 @@ export default function TeamPage() {
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-sm">
               <thead>
-                <tr><th className={TH}>Name</th><th className={TH}>Email</th><th className={TH}>Role</th><th className={TH}>Region</th><th className={TH}>Status</th></tr>
+                <tr>
+                  <th className={TH}>Name</th><th className={TH}>Email</th><th className={TH}>User ID</th>
+                  <th className={TH}>Role</th><th className={TH}>Region</th><th className={TH}>Status</th>
+                  {isAdmin && <th className={TH}></th>}
+                </tr>
               </thead>
               <tbody>
                 {list.map((u) => (
                   <tr key={u.id} className="hover:bg-surface-2 last:[&>td]:border-b-0">
                     <td className={TD}>{u.name}</td>
                     <td className={TD}>{u.email}</td>
+                    <td className={TD}>{u.userId || '—'}</td>
                     <td className={TD}><Badge>{u.role}</Badge></td>
                     <td className={TD}>{u.region || '—'}</td>
-                    <td className={TD}><Badge status={u.active === false ? 'REJECTED' : 'APPROVED'}>{u.active === false ? 'Inactive' : 'Active'}</Badge></td>
+                    <td className={TD}><Badge status={u.active === false ? 'REJECTED' : 'APPROVED'}>{u.active === false ? 'Pending' : 'Active'}</Badge></td>
+                    {isAdmin && (
+                      <td className={TD}>
+                        {u.active === false && (
+                          <Button size="sm" onClick={() => approve(u)}>Approve</Button>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
