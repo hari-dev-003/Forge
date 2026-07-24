@@ -1,5 +1,4 @@
-import ReactEChartsCore from 'echarts-for-react/lib/core';
-import { echarts, axisCommon, tooltipCommon } from './theme.js';
+import { echarts, ReactEChartsCore, axisCommon, tooltipCommon } from './theme.js';
 
 /** Horizontal ranking bar (e.g. top performers by points). */
 export default function BarChart({ data = [], height = 200 }) {

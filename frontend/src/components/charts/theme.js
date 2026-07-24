@@ -8,10 +8,16 @@ import * as echarts from 'echarts/core';
 import { LineChart, PieChart, BarChart } from 'echarts/charts';
 import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
+import ReactEChartsCoreImport from 'echarts-for-react/lib/core';
 
 echarts.use([LineChart, PieChart, BarChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
 
 export { echarts };
+
+// Vite's CJS interop for this subpath sometimes hands back the raw
+// `{ default, __esModule }` wrapper instead of unwrapping it — fall back to
+// `.default` when that happens.
+export const ReactEChartsCore = ReactEChartsCoreImport?.default ?? ReactEChartsCoreImport;
 
 export const CHART_COLORS = ['#eeb31c', '#80db66', '#3b82f6', '#f59e0b', '#ef4444'];
 

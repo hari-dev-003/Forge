@@ -1,5 +1,4 @@
-import ReactEChartsCore from 'echarts-for-react/lib/core';
-import { echarts, axisCommon, tooltipCommon } from './theme.js';
+import { echarts, ReactEChartsCore, axisCommon, tooltipCommon } from './theme.js';
 
 /** 7-day (or N-day) trend line, themed to match the app. */
 export default function LineChart({ data = [], height = 200 }) {

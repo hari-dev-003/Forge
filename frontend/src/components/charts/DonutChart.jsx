@@ -1,5 +1,4 @@
-import ReactEChartsCore from 'echarts-for-react/lib/core';
-import { echarts, CHART_COLORS, tooltipCommon } from './theme.js';
+import { echarts, ReactEChartsCore, CHART_COLORS, tooltipCommon } from './theme.js';
 
 /** Category-distribution donut (e.g. meeting type split). */
 export default function DonutChart({ data = [], height = 200 }) {
