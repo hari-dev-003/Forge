@@ -11,8 +11,6 @@ import LiveSection from './LiveSection.jsx';
 import HowItWorks from './HowItWorks.jsx';
 import Automation from './Automation.jsx';
 import Testimonial from './Testimonial.jsx';
-import Pricing from './Pricing.jsx';
-import Faq from './Faq.jsx';
 import LandingFooter from './LandingFooter.jsx';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -110,8 +108,6 @@ export default function LandingPage() {
       <div data-reveal-section><HowItWorks /></div>
       <Automation />
       <Testimonial />
-      <div data-reveal-section><Pricing /></div>
-      <Faq />
       <LandingFooter />
     </div>
   );
