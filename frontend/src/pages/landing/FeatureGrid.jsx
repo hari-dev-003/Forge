@@ -1,4 +1,27 @@
+import { gsap } from 'gsap';
 import Icon from '../../components/ui/Icon.jsx';
+
+// Subtle pointer-follow tilt + cursor-tracked glow — capped small (±6deg) so
+// it reads as a premium micro-interaction, not a gimmick. No-ops on touch
+// (no fine hover pointer) and under prefers-reduced-motion.
+const canTilt = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia('(hover: hover) and (pointer: fine)').matches &&
+  !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function handleTiltMove(e) {
+  if (!canTilt()) return;
+  const card = e.currentTarget;
+  const rect = card.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / rect.width - 0.5;
+  const y = (e.clientY - rect.top) / rect.height - 0.5;
+  gsap.to(card, { rotateY: x * 6, rotateX: -y * 6, duration: 0.4, ease: 'power2.out', transformPerspective: 600 });
+  card.style.setProperty('--glow-x', `${(x + 0.5) * 100}%`);
+  card.style.setProperty('--glow-y', `${(y + 0.5) * 100}%`);
+}
+function handleTiltLeave(e) {
+  gsap.to(e.currentTarget, { rotateY: 0, rotateX: 0, duration: 0.6, ease: 'power3.out' });
+}
 
 const FEATURES = [
   { icon: 'barChart', title: 'Portfolio analytics', metric: '30+ metrics', body: 'Sharpe ratio, drawdown, exposure by asset — every number a serious trader actually checks.' },
@@ -25,7 +48,12 @@ export default function FeatureGrid() {
 
         <div className="grid grid-cols-3 gap-5 max-[860px]:grid-cols-2 max-[560px]:grid-cols-1">
           {FEATURES.map((f) => (
-            <div key={f.title} className="bg-surface border border-border rounded-[16px] p-6 glow-card">
+            <div
+              key={f.title}
+              className="tilt-card relative bg-surface/80 backdrop-blur-md border border-border rounded-[16px] p-6 glow-card overflow-hidden"
+              onMouseMove={handleTiltMove}
+              onMouseLeave={handleTiltLeave}
+            >
               <div className="flex items-center justify-between mb-4">
                 <div className="w-11 h-11 rounded-[11px] bg-primary-soft border border-primary/30 text-primary grid place-items-center">
                   <Icon name={f.icon} size={20} />

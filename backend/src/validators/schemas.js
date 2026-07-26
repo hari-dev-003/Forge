@@ -12,21 +12,43 @@ export const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+const strongPassword = z
+  .string()
+  .min(8)
+  .max(72)
+  .regex(/[a-z]/, 'Password needs a lowercase letter')
+  .regex(/[A-Z]/, 'Password needs an uppercase letter')
+  .regex(/[0-9]/, 'Password needs a number')
+  .regex(/[^a-zA-Z0-9]/, 'Password needs a symbol');
+
+// Admin-only provisioning — managers only. Field users self-signup (see below);
+// there is no admin-create path for them anymore.
 export const createUserSchema = z.object({
   name: z.string().min(2).max(80),
   email: z.string().email(),
-  password: z.string().min(8).max(72),
-  role: z.enum([ROLES.MANAGER, ROLES.USER]),
-  managerId: z.string().optional().nullable(),
+  password: strongPassword,
+  role: z.literal(ROLES.MANAGER),
   region: z.string().optional().nullable(),
 });
 
-// Public self-signup — always provisions a field user (Employee), pending admin approval.
+// Public self-signup — always a field user, activated via Cognito's emailed
+// verification code (see confirmSignupSchema), not admin approval.
 export const signupSchema = z.object({
   name: z.string().min(2).max(80),
   email: z.string().email(),
-  password: z.string().min(8).max(72),
+  password: strongPassword,
   userId: z.string().min(1).max(40),
+});
+
+export const confirmSignupSchema = z.object({
+  name: z.string().min(2).max(80),
+  email: z.string().email(),
+  userId: z.string().min(1).max(40),
+  code: z.string().regex(/^\d{6}$/, 'Enter the 6-digit code from your email'),
+});
+
+export const resendSignupCodeSchema = z.object({
+  email: z.string().email(),
 });
 
 export const updateUserSchema = z.object({

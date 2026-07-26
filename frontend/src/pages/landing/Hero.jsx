@@ -2,17 +2,20 @@ import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/index.jsx';
 import Icon from '../../components/ui/Icon.jsx';
 
+// data-count-to drives the GSAP count-up tween wired centrally in
+// LandingPage.jsx — decimals/prefix/suffix reconstruct the display string
+// on every tick so the whole page's motion stays in one place.
 const STATS = [
-  { label: 'Assets tracked', value: '$4.2B+' },
-  { label: 'Active traders', value: '180K+' },
-  { label: 'Uptime', value: '99.98%' },
+  { label: 'Assets tracked', target: 4.2, decimals: 1, prefix: '$', suffix: 'B+' },
+  { label: 'Active traders', target: 180, decimals: 0, prefix: '', suffix: 'K+' },
+  { label: 'Uptime', target: 99.98, decimals: 2, prefix: '', suffix: '%' },
 ];
 
 export default function Hero() {
   return (
     <section className="relative pt-36 pb-24 px-6 overflow-hidden">
-      <div className="absolute -top-32 -left-32 w-125 h-125 rounded-full bg-primary/5 blur-3xl blob-drift pointer-events-none" />
-      <div className="absolute top-40 -right-40 w-150 h-150 rounded-full bg-primary/3 blur-3xl blob-drift pointer-events-none" style={{ animationDelay: '3s' }} />
+      <div data-parallax className="absolute -top-32 -left-32 w-125 h-125 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+      <div data-parallax className="absolute top-40 -right-40 w-150 h-150 rounded-full bg-primary/3 blur-3xl pointer-events-none" />
 
       <div className="relative max-w-320 mx-auto grid grid-cols-[1.1fr_0.9fr] gap-16 items-center max-[960px]:grid-cols-1 max-[960px]:text-center">
         <div data-hero-in>
@@ -42,7 +45,15 @@ export default function Hero() {
           <div className="mt-14 flex gap-10 max-[960px]:justify-center flex-wrap">
             {STATS.map((s) => (
               <div key={s.label}>
-                <div className="text-[28px] font-bold font-heading text-white">{s.value}</div>
+                <div
+                  className="text-[28px] font-bold font-heading text-white"
+                  data-count-to={s.target}
+                  data-decimals={s.decimals}
+                  data-prefix={s.prefix}
+                  data-suffix={s.suffix}
+                >
+                  {s.prefix}0{s.suffix}
+                </div>
                 <div className="text-xs text-muted uppercase tracking-wide mt-1">{s.label}</div>
               </div>
             ))}
@@ -54,7 +65,15 @@ export default function Hero() {
             <div className="flex items-center justify-between mb-5">
               <div>
                 <div className="text-xs text-muted uppercase tracking-wide">Portfolio value</div>
-                <div className="text-[32px] font-bold font-heading text-white mt-1">$128,430.52</div>
+                <div
+                  className="text-[32px] font-bold font-heading text-white mt-1"
+                  data-count-to="128430.52"
+                  data-decimals="2"
+                  data-prefix="$"
+                  data-thousands="true"
+                >
+                  $0.00
+                </div>
               </div>
               <span className="inline-flex items-center gap-1.5 text-success text-sm font-semibold bg-success-soft px-2.5 py-1 rounded-full">
                 <Icon name="trendingUp" size={14} /> +12.4%

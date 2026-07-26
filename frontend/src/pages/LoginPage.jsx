@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useSearchParams, Navigate } from 'react-router-dom';
-import { login, signup, clearError, clearSignup } from '../features/auth/authSlice.js';
+import { login, signup, confirmSignup, resendSignupCode, clearError, clearSignup } from '../features/auth/authSlice.js';
 import { usePwaInstall } from '../hooks/usePwaInstall.js';
 import { Button, Field, Input } from '../components/ui/index.jsx';
 import Icon from '../components/ui/Icon.jsx';
@@ -12,11 +12,16 @@ export default function LoginPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { token, status, error, signupStatus, signupMessage, signupError } = useSelector((s) => s.auth);
+  const {
+    token, status, error,
+    signupStatus, signupMessage, signupError,
+    pendingSignup, confirmStatus, confirmError, resendStatus,
+  } = useSelector((s) => s.auth);
   const { canInstall, promptInstall, isIOS, isStandalone } = usePwaInstall();
-  const [mode, setMode] = useState(searchParams.get('mode') === 'signup' ? 'signup' : 'login'); // 'login' | 'signup'
+  const [mode, setMode] = useState(searchParams.get('mode') === 'signup' ? 'signup' : 'login'); // 'login' | 'signup' | 'verify'
   const [form, setForm] = useState({ email: '', password: '' });
   const [signupForm, setSignupForm] = useState(emptySignupForm);
+  const [code, setCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => () => { dispatch(clearError()); dispatch(clearSignup()); }, [dispatch]);
@@ -35,7 +40,25 @@ export default function LoginPage() {
   const submitSignup = async (e) => {
     e.preventDefault();
     const res = await dispatch(signup(signupForm));
-    if (res.meta.requestStatus === 'fulfilled') setSignupForm(emptySignupForm);
+    if (res.meta.requestStatus === 'fulfilled') {
+      setMode('verify');
+      setCode('');
+    }
+  };
+
+  const submitConfirm = async (e) => {
+    e.preventDefault();
+    const res = await dispatch(confirmSignup({ ...pendingSignup, code }));
+    if (res.meta.requestStatus === 'fulfilled') {
+      setForm({ email: pendingSignup?.email || '', password: '' });
+      setSignupForm(emptySignupForm);
+      setCode('');
+      setMode('login');
+    }
+  };
+
+  const resendCode = () => {
+    if (pendingSignup?.email) dispatch(resendSignupCode({ email: pendingSignup.email }));
   };
 
   const switchMode = (m) => {
@@ -84,10 +107,14 @@ export default function LoginPage() {
           </div>
 
           <h2 className="text-[24px] mb-1 font-bold font-heading text-white">
-            {mode === 'login' ? 'Welcome back' : 'Create your account'}
+            {mode === 'login' ? 'Welcome back' : mode === 'verify' ? 'Verify your email' : 'Create your account'}
           </h2>
           <p className="text-muted text-sm mb-6">
-            {mode === 'login' ? 'Sign in to your workspace' : 'Sign up as a field employee — an admin will approve your account.'}
+            {mode === 'login'
+              ? 'Sign in to your workspace'
+              : mode === 'verify'
+                ? <>We've sent a 6-digit code to <b className="text-white">{pendingSignup?.email}</b> — enter it below to activate your account.</>
+                : 'Sign up as a field employee — verify your email to activate your account.'}
           </p>
 
           {mode === 'login' && error && (
@@ -96,7 +123,10 @@ export default function LoginPage() {
           {mode === 'signup' && signupError && (
             <div className="bg-danger-soft border border-danger/30 text-danger px-3 py-2.5 rounded-[9px] text-[13px] mb-4">{signupError}</div>
           )}
-          {mode === 'signup' && signupStatus === 'succeeded' && signupMessage && (
+          {mode === 'verify' && confirmError && (
+            <div className="bg-danger-soft border border-danger/30 text-danger px-3 py-2.5 rounded-[9px] text-[13px] mb-4">{confirmError}</div>
+          )}
+          {mode === 'login' && signupStatus === 'succeeded' && signupMessage && (
             <div className="bg-success-soft border border-success/30 text-success px-3 py-2.5 rounded-[9px] text-[13px] mb-4">{signupMessage}</div>
           )}
 
@@ -144,6 +174,38 @@ export default function LoginPage() {
                 Sign in
               </Button>
             </form>
+          ) : mode === 'verify' ? (
+            <form onSubmit={submitConfirm}>
+              <Field label="Verification code">
+                <Input
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="123456"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  required
+                  autoFocus
+                  className="text-center tracking-[0.5em] text-lg"
+                />
+              </Field>
+              <Button type="submit" className="w-full mt-2" loading={confirmStatus === 'loading'} disabled={code.length !== 6}>
+                Verify & continue
+              </Button>
+              <div className="mt-4 flex items-center justify-between text-xs">
+                <button
+                  type="button"
+                  onClick={resendCode}
+                  disabled={resendStatus === 'loading'}
+                  className="text-primary font-semibold hover:underline disabled:opacity-60"
+                >
+                  {resendStatus === 'loading' ? 'Sending…' : 'Resend code'}
+                </button>
+                <button type="button" onClick={() => switchMode('signup')} className="text-muted hover:text-white">
+                  Use a different email
+                </button>
+              </div>
+            </form>
           ) : (
             <form onSubmit={submitSignup}>
               <Field label="Full name">
@@ -155,7 +217,7 @@ export default function LoginPage() {
               <Field label="User ID">
                 <Input value={signupForm.userId} onChange={setSignup('userId')} placeholder="Your employee/user ID" required />
               </Field>
-              <Field label="Password" hint="Min 8 characters">
+              <Field label="Password" hint="Min 8 characters, with upper/lowercase, a number & a symbol">
                 <div className="relative flex items-center">
                   <span className="absolute left-3 text-muted/60 pointer-events-none flex items-center">
                     <Icon name="lock" size={16} />
@@ -185,13 +247,15 @@ export default function LoginPage() {
             </form>
           )}
 
-          <p className="mt-5 text-xs text-muted text-center leading-relaxed">
-            {mode === 'login' ? (
-              <>Need an account? <button type="button" onClick={() => switchMode('signup')} className="text-primary font-semibold hover:underline">Sign up</button> as a field employee.</>
-            ) : (
-              <>Already have an account? <button type="button" onClick={() => switchMode('login')} className="text-primary font-semibold hover:underline">Sign in</button>.</>
-            )}
-          </p>
+          {mode !== 'verify' && (
+            <p className="mt-5 text-xs text-muted text-center leading-relaxed">
+              {mode === 'login' ? (
+                <>Need an account? <button type="button" onClick={() => switchMode('signup')} className="text-primary font-semibold hover:underline">Sign up</button> as a field employee.</>
+              ) : (
+                <>Already have an account? <button type="button" onClick={() => switchMode('login')} className="text-primary font-semibold hover:underline">Sign in</button>.</>
+              )}
+            </p>
+          )}
 
           {canInstall && (
             <Button variant="outline" className="w-full mt-4" onClick={promptInstall}>

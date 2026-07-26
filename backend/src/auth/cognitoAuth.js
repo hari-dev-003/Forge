@@ -2,7 +2,14 @@
 //   login()          -> AdminInitiateAuth (ADMIN_USER_PASSWORD_AUTH), returns the ID token
 //   verify()         -> cryptographic JWT verification via aws-jwt-verify (JWKS)
 //   adminCreateUser()-> AdminCreateUser + set permanent password + add to role group,
-//                       then persist the app profile (manager/region) in DynamoDB
+//                       then persist the app profile (manager/region) in DynamoDB.
+//                       Always pre-confirmed — used only for admin-provisioned accounts
+//                       (managers), which don't need email verification.
+//   selfSignUp()/confirmSignUp()/resendSignUpCode() -> the public Cognito SignUp/
+//                       ConfirmSignUp/ResendConfirmationCode APIs, used only for the
+//                       field-user self-registration flow: Cognito emails a code on
+//                       SignUp (this pool has AutoVerifiedAttributes: ['email']) and
+//                       the account only becomes usable after ConfirmSignUp.
 //   ensureGroup()    -> idempotent group creation (used by the bootstrap script)
 //
 // Cognito is the identity source of truth; app-specific fields (managerId,
@@ -15,7 +22,11 @@ import {
   AdminSetUserPasswordCommand,
   AdminAddUserToGroupCommand,
   AdminDeleteUserCommand,
+  AdminGetUserCommand,
   CreateGroupCommand,
+  SignUpCommand,
+  ConfirmSignUpCommand,
+  ResendConfirmationCodeCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
 import { SimpleJwksCache } from 'aws-jwt-verify/jwk';
@@ -64,6 +75,15 @@ function secretHash(username) {
     .createHmac('sha256', env.cognito.clientSecret)
     .update(username + env.cognito.clientId)
     .digest('base64');
+}
+
+// This user pool has `email` as an alias attribute, so Cognito rejects an
+// email-format Username at account-creation time (AliasExistsException-
+// adjacent InvalidParameterException) — every creation path (admin or
+// self-signup) needs the same sanitized Username. Sign-in still works via
+// the email alias in login() below.
+function sanitizeUsername(email) {
+  return email.replace(/@/g, '_at_').replace(/[^a-zA-Z0-9_.-]/g, '_');
 }
 
 export const cognitoAuth = {
@@ -142,11 +162,7 @@ export const cognitoAuth = {
   }) {
     if (!email || !password) throw new BadRequestError('email and password are required');
 
-    // This user pool has `email` as an alias attribute, so Cognito rejects an
-    // email-format Username at creation time (AliasExistsException-adjacent
-    // InvalidParameterException). Use a sanitized Username instead — sign-in
-    // still works via the email alias in login() below.
-    const cognitoUsername = email.replace(/@/g, '_at_').replace(/[^a-zA-Z0-9_.-]/g, '_');
+    const cognitoUsername = sanitizeUsername(email);
 
     let created;
     try {
@@ -210,6 +226,128 @@ export const cognitoAuth = {
         .catch(() => {});
       if (e.name === 'InvalidPasswordException') {
         throw new BadRequestError(`Password does not meet requirements: ${e.message}`);
+      }
+      throw e;
+    }
+  },
+
+  /**
+   * Public self-signup (field users only): Cognito creates an UNCONFIRMED
+   * user and — because this pool's AutoVerifiedAttributes includes 'email' —
+   * automatically emails a verification code. The account doesn't exist in
+   * DynamoDB yet; confirmSignUp() below finishes provisioning once the code
+   * is verified.
+   */
+  async selfSignUp({ email, password, name }) {
+    if (!email || !password) throw new BadRequestError('email and password are required');
+    const cognitoUsername = sanitizeUsername(email);
+    try {
+      await client.send(
+        new SignUpCommand({
+          ClientId: env.cognito.clientId,
+          Username: cognitoUsername,
+          Password: password,
+          SecretHash: secretHash(cognitoUsername),
+          UserAttributes: [
+            { Name: 'email', Value: email },
+            { Name: 'name', Value: name || email },
+            // This pool's schema requires preferred_username on the public
+            // SignUp API specifically (AdminCreateUser is more lenient,
+            // which is why adminCreateUser above never needed this) —
+            // reuse the same sanitized value already validated as Username.
+            { Name: 'preferred_username', Value: cognitoUsername },
+          ],
+        })
+      );
+    } catch (e) {
+      if (e.name === 'UsernameExistsException') {
+        throw new ConflictError('An account with this email already exists — sign in, or use "Resend code" if you haven\'t verified it yet');
+      }
+      if (e.name === 'InvalidPasswordException') {
+        throw new BadRequestError(`Password does not meet requirements: ${e.message}`);
+      }
+      throw e;
+    }
+  },
+
+  /**
+   * Verify the emailed code, then finish provisioning: add the user to the
+   * "User" Cognito group (SignUp doesn't touch groups — only the Admin* APIs
+   * can) and persist the DynamoDB profile. `name`/`userId` are re-submitted
+   * by the caller (the frontend still has them from the signup form) rather
+   * than relied on as Cognito custom attributes.
+   */
+  async confirmSignUp({ email, code, name, userId }) {
+    if (!email || !code) throw new BadRequestError('email and code are required');
+    const cognitoUsername = sanitizeUsername(email);
+    try {
+      await client.send(
+        new ConfirmSignUpCommand({
+          ClientId: env.cognito.clientId,
+          Username: cognitoUsername,
+          ConfirmationCode: code,
+          SecretHash: secretHash(cognitoUsername),
+        })
+      );
+    } catch (e) {
+      if (e.name === 'CodeMismatchException' || e.name === 'ExpiredCodeException') {
+        throw new UnauthorizedError('That code is invalid or has expired — request a new one');
+      }
+      if (e.name === 'NotAuthorizedException') {
+        throw new BadRequestError('This account is already verified — try signing in');
+      }
+      if (e.name === 'UserNotFoundException') {
+        throw new BadRequestError('No pending signup found for this email');
+      }
+      throw e;
+    }
+
+    const got = await client.send(
+      new AdminGetUserCommand({ UserPoolId: env.cognito.userPoolId, Username: cognitoUsername })
+    );
+    const sub = got.UserAttributes?.find((a) => a.Name === 'sub')?.Value;
+
+    await client.send(
+      new AdminAddUserToGroupCommand({
+        UserPoolId: env.cognito.userPoolId,
+        Username: cognitoUsername,
+        GroupName: GROUP_FOR_ROLE.USER,
+      })
+    );
+
+    const user = {
+      id: sub,
+      email: email.toLowerCase(),
+      name: name || email,
+      role: ROLES.USER,
+      managerId: null,
+      region: null,
+      userId: userId || null,
+      active: true,
+      createdAt: new Date().toISOString(),
+    };
+    await userRepo.create(user);
+    return { user };
+  },
+
+  /** Re-send the signup verification code (expired/lost original). */
+  async resendSignUpCode({ email }) {
+    if (!email) throw new BadRequestError('email is required');
+    const cognitoUsername = sanitizeUsername(email);
+    try {
+      await client.send(
+        new ResendConfirmationCodeCommand({
+          ClientId: env.cognito.clientId,
+          Username: cognitoUsername,
+          SecretHash: secretHash(cognitoUsername),
+        })
+      );
+    } catch (e) {
+      if (e.name === 'UserNotFoundException') {
+        throw new BadRequestError('No pending signup found for this email');
+      }
+      if (e.name === 'InvalidParameterException') {
+        throw new BadRequestError('This account is already verified — try signing in');
       }
       throw e;
     }

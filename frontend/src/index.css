@@ -255,6 +255,26 @@
   transform: translateY(-1px);
 }
 
+/* Cursor-tracked glow paired with the pointer-tilt hover on landing feature/
+   pricing cards (tilt itself is GSAP-driven, this is just the highlight). */
+.tilt-card {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.tilt-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at var(--glow-x, 50%) var(--glow-y, 50%), rgba(238, 179, 28, 0.12), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.tilt-card:hover::before {
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .marquee-track,
   .blob-drift,
@@ -267,6 +287,9 @@
   .reveal {
     opacity: 1;
     transform: none;
+  }
+  .tilt-card:hover::before {
+    opacity: 0;
   }
 }
 

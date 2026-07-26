@@ -1,6 +1,28 @@
 import { Link } from 'react-router-dom';
+import { gsap } from 'gsap';
 import { Button } from '../../components/ui/index.jsx';
 import Icon from '../../components/ui/Icon.jsx';
+
+// Same pointer-tilt + cursor-glow treatment as FeatureGrid's cards, kept
+// file-local (only two consumers — not worth a shared hook for that).
+const canTilt = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia('(hover: hover) and (pointer: fine)').matches &&
+  !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function handleTiltMove(e) {
+  if (!canTilt()) return;
+  const card = e.currentTarget;
+  const rect = card.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / rect.width - 0.5;
+  const y = (e.clientY - rect.top) / rect.height - 0.5;
+  gsap.to(card, { rotateY: x * 5, rotateX: -y * 5, duration: 0.4, ease: 'power2.out', transformPerspective: 700 });
+  card.style.setProperty('--glow-x', `${(x + 0.5) * 100}%`);
+  card.style.setProperty('--glow-y', `${(y + 0.5) * 100}%`);
+}
+function handleTiltLeave(e) {
+  gsap.to(e.currentTarget, { rotateY: 0, rotateX: 0, duration: 0.6, ease: 'power3.out' });
+}
 
 const TIERS = [
   {
@@ -45,11 +67,13 @@ export default function Pricing() {
           {TIERS.map((t) => (
             <div
               key={t.name}
-              className={`rounded-[20px] p-8 border relative ${
+              className={`tilt-card rounded-[20px] p-8 border relative overflow-hidden ${
                 t.featured
                   ? 'bg-gradient-to-b from-primary/10 to-surface border-primary/50 shadow-[0_0_20px_rgba(238,179,28,0.08)] md:-translate-y-3'
                   : 'bg-surface border-border glow-card'
               }`}
+              onMouseMove={handleTiltMove}
+              onMouseLeave={handleTiltLeave}
             >
               {t.featured && (
                 <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary text-on-primary text-[11px] font-bold uppercase tracking-wide px-3 py-1 rounded-full">

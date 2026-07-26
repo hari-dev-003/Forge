@@ -23,7 +23,7 @@ export default function ValueProps() {
     <section className="py-24 px-6">
       <div className="max-w-320 mx-auto grid grid-cols-3 gap-6 max-[860px]:grid-cols-1">
         {ITEMS.map((it) => (
-          <div key={it.title} className="bg-surface/60 border border-border rounded-[16px] p-7 glow-card">
+          <div key={it.title} className="bg-surface/80 backdrop-blur-md border border-border rounded-[16px] p-7 glow-card">
             <div className="w-12 h-12 rounded-[12px] bg-primary-soft border border-primary/30 text-primary grid place-items-center mb-5">
               <Icon name={it.icon} size={22} />
             </div>

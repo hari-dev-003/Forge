@@ -10,7 +10,7 @@ export default function Automation() {
   return (
     <section className="py-24 px-6">
       <div className="max-w-320 mx-auto relative bg-gradient-to-br from-hero-from via-hero-via to-hero-to border border-border rounded-[24px] p-12 overflow-hidden max-[640px]:p-7">
-        <div className="absolute -top-20 -right-20 w-100 h-100 rounded-full bg-primary/5 blur-3xl blob-drift pointer-events-none" />
+        <div data-parallax className="absolute -top-20 -right-20 w-100 h-100 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
         <div className="relative grid grid-cols-[1fr_1fr] gap-12 items-center max-[860px]:grid-cols-1">
           <div>
             <div className="w-12 h-12 rounded-[12px] bg-primary-soft border border-primary/30 text-primary grid place-items-center mb-5">

@@ -2,22 +2,19 @@ import { userRepo } from '../repositories/userRepo.js';
 import { authProvider } from '../auth/index.js';
 import { auditRepo } from '../repositories/auditRepo.js';
 import { ROLES } from '../config/constants.js';
-import { BadRequestError, NotFoundError } from '../lib/errors.js';
+import { NotFoundError } from '../lib/errors.js';
 
 export const userService = {
-  /** Admin creates a manager or user (with credentials for local auth). */
+  /** Admin creates a manager (with credentials for local auth) — always immediately active. */
   async createUser(actor, dto) {
-    if (dto.role === ROLES.USER && !dto.managerId) {
-      throw new BadRequestError('A field user must be assigned to a manager');
-    }
-    if (dto.managerId) {
-      const mgr = await userRepo.getById(dto.managerId);
-      if (!mgr || mgr.role !== ROLES.MANAGER) {
-        throw new BadRequestError('managerId must reference an existing manager');
-      }
-    }
-    // Provision in Cognito (credentials + group) and persist the DynamoDB profile.
-    const { user } = await authProvider.adminCreateUser(dto);
+    const { user } = await authProvider.adminCreateUser({
+      email: dto.email,
+      password: dto.password,
+      name: dto.name,
+      role: ROLES.MANAGER,
+      managerId: null,
+      region: dto.region,
+    });
     await auditRepo.record({
       actorId: actor.id,
       actorRole: actor.role,
@@ -28,25 +25,36 @@ export const userService = {
     return user;
   },
 
-  /** Public self-signup — always a field user (Employee), inactive until an admin approves them. */
+  /**
+   * Public self-signup — kicks off Cognito's SignUp flow (emails a
+   * verification code, this pool auto-verifies email). No DynamoDB profile
+   * exists yet; confirmSignup() below finishes provisioning once verified.
+   */
   async signup(dto) {
-    const { user } = await authProvider.adminCreateUser({
+    await authProvider.selfSignUp({ email: dto.email, password: dto.password, name: dto.name });
+  },
+
+  /** Verify the emailed code and finish provisioning the field-user account. */
+  async confirmSignup(dto) {
+    const { user } = await authProvider.confirmSignUp({
       email: dto.email,
-      password: dto.password,
+      code: dto.code,
       name: dto.name,
       userId: dto.userId,
-      role: ROLES.USER,
-      managerId: null,
-      active: false,
     });
     await auditRepo.record({
       actorId: user.id,
       actorRole: ROLES.USER,
-      action: 'USER_SIGNUP',
+      action: 'USER_SIGNUP_CONFIRMED',
       target: user.id,
       meta: { email: user.email },
     });
     return user;
+  },
+
+  /** Re-send the signup verification code. */
+  async resendSignupCode(dto) {
+    await authProvider.resendSignUpCode({ email: dto.email });
   },
 
   async getProfile(id) {

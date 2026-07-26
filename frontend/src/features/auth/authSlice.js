@@ -21,10 +21,30 @@ export const fetchMe = createAsyncThunk('auth/me', async (_, { rejectWithValue }
   }
 });
 
-// Public self-signup — always provisions an Employee account pending admin approval.
+// Public self-signup — kicks off Cognito's emailed verification code. Always
+// a field-employee account; there's no role choice here.
 export const signup = createAsyncThunk('auth/signup', async (dto, { rejectWithValue }) => {
   try {
-    return unwrap(await api.post('/auth/signup', dto));
+    const data = unwrap(await api.post('/auth/signup', dto));
+    // Echo the submitted identity forward so the verify step / resend don't
+    // need to re-ask for it — dto isn't part of the response body.
+    return { ...data, pending: { email: dto.email, name: dto.name, userId: dto.userId } };
+  } catch (e) {
+    return rejectWithValue(apiError(e));
+  }
+});
+
+export const confirmSignup = createAsyncThunk('auth/confirmSignup', async (dto, { rejectWithValue }) => {
+  try {
+    return unwrap(await api.post('/auth/confirm-signup', dto));
+  } catch (e) {
+    return rejectWithValue(apiError(e));
+  }
+});
+
+export const resendSignupCode = createAsyncThunk('auth/resendSignupCode', async (dto, { rejectWithValue }) => {
+  try {
+    return unwrap(await api.post('/auth/resend-signup-code', dto));
   } catch (e) {
     return rejectWithValue(apiError(e));
   }
@@ -39,6 +59,10 @@ const initialState = {
   signupStatus: 'idle',
   signupMessage: null,
   signupError: null,
+  pendingSignup: null, // { email, name, userId } once signed up, awaiting code verification
+  confirmStatus: 'idle',
+  confirmError: null,
+  resendStatus: 'idle',
 };
 
 const authSlice = createSlice({
@@ -59,6 +83,9 @@ const authSlice = createSlice({
       state.signupStatus = 'idle';
       state.signupMessage = null;
       state.signupError = null;
+      state.pendingSignup = null;
+      state.confirmStatus = 'idle';
+      state.confirmError = null;
     },
   },
   extraReducers: (builder) => {
@@ -70,8 +97,22 @@ const authSlice = createSlice({
       .addCase(fetchMe.fulfilled, (s, a) => { s.user = a.payload; s.bootstrapping = false; })
       .addCase(fetchMe.rejected, (s) => { s.user = null; s.token = null; s.bootstrapping = false; })
       .addCase(signup.pending, (s) => { s.signupStatus = 'loading'; s.signupError = null; })
-      .addCase(signup.fulfilled, (s, a) => { s.signupStatus = 'succeeded'; s.signupMessage = a.payload.message; })
-      .addCase(signup.rejected, (s, a) => { s.signupStatus = 'failed'; s.signupError = a.payload; });
+      .addCase(signup.fulfilled, (s, a) => {
+        s.signupStatus = 'succeeded';
+        s.signupMessage = a.payload.message;
+        s.pendingSignup = a.payload.pending;
+      })
+      .addCase(signup.rejected, (s, a) => { s.signupStatus = 'failed'; s.signupError = a.payload; })
+      .addCase(confirmSignup.pending, (s) => { s.confirmStatus = 'loading'; s.confirmError = null; })
+      .addCase(confirmSignup.fulfilled, (s, a) => {
+        s.confirmStatus = 'succeeded';
+        s.signupMessage = a.payload.message;
+        s.pendingSignup = null;
+      })
+      .addCase(confirmSignup.rejected, (s, a) => { s.confirmStatus = 'failed'; s.confirmError = a.payload; })
+      .addCase(resendSignupCode.pending, (s) => { s.resendStatus = 'loading'; })
+      .addCase(resendSignupCode.fulfilled, (s) => { s.resendStatus = 'succeeded'; })
+      .addCase(resendSignupCode.rejected, (s) => { s.resendStatus = 'failed'; });
   },
 });
 

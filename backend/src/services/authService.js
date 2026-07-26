@@ -8,9 +8,19 @@ export const authService = {
     return authProvider.login(dto);
   },
 
-  /** Public self-signup — provisions an inactive Employee account pending admin approval. */
+  /** Public self-signup — kicks off Cognito's email verification (see userService.signup). */
   async signup(dto) {
     return userService.signup(dto);
+  },
+
+  /** Verify the emailed code and finish provisioning the field-user account. */
+  async confirmSignup(dto) {
+    return userService.confirmSignup(dto);
+  },
+
+  /** Re-send the signup verification code. */
+  async resendSignupCode(dto) {
+    return userService.resendSignupCode(dto);
   },
 
   /** Fresh profile for the authenticated principal (picks up manager/region changes). */
