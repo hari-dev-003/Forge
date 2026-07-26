@@ -18,10 +18,13 @@ import {
   CreateGroupCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
+import { SimpleJwksCache } from 'aws-jwt-verify/jwk';
+import { SimpleJsonFetcher } from 'aws-jwt-verify/https';
 import { env, awsClientConfig } from '../config/env.js';
 import { userRepo } from '../repositories/userRepo.js';
 import { ROLES } from '../config/constants.js';
 import { BadRequestError, UnauthorizedError, ConflictError, ForbiddenError } from '../lib/errors.js';
+import { logger } from '../lib/logger.js';
 
 const client = new CognitoIdentityProviderClient(awsClientConfig(env.cognito.region));
 
@@ -29,14 +32,27 @@ const GROUP_FOR_ROLE = { ADMIN: 'Admin', MANAGER: 'Manager', USER: 'User' };
 const roleFromGroups = (groups = []) =>
   groups.includes('Admin') ? ROLES.ADMIN : groups.includes('Manager') ? ROLES.MANAGER : ROLES.USER;
 
+// aws-jwt-verify's default JWKS fetch timeout (1.5s) is tighter than this
+// environment's observed latency to Cognito's .well-known/jwks.json, which
+// intermittently made otherwise-valid logins fail with "Invalid or expired
+// token". Widen it and prime the cache at import time so the first real
+// login never pays the cold-fetch penalty.
 let _verifier = null;
 function verifier() {
   if (!_verifier) {
-    _verifier = CognitoJwtVerifier.create({
-      userPoolId: env.cognito.userPoolId,
-      tokenUse: 'id',
-      clientId: env.cognito.clientId,
-    });
+    _verifier = CognitoJwtVerifier.create(
+      {
+        userPoolId: env.cognito.userPoolId,
+        tokenUse: 'id',
+        clientId: env.cognito.clientId,
+      },
+      {
+        jwksCache: new SimpleJwksCache({
+          fetcher: new SimpleJsonFetcher({ defaultRequestOptions: { responseTimeout: 10000 } }),
+        }),
+      }
+    );
+    _verifier.hydrate().catch((e) => logger.warn('Cognito JWKS pre-fetch failed (will retry on first verify)', { message: e.message }));
   }
   return _verifier;
 }
@@ -96,7 +112,8 @@ export const cognitoAuth = {
     let payload;
     try {
       payload = await verifier().verify(token);
-    } catch {
+    } catch (e) {
+      logger.warn('Token verification failed', { name: e.name, message: e.message });
       throw new UnauthorizedError('Invalid or expired token');
     }
     const role = roleFromGroups(payload['cognito:groups']);

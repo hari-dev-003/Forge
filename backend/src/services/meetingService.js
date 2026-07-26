@@ -91,18 +91,33 @@ export const meetingService = {
     return withPhotoUrls(items);
   },
 
-  /** Role-scoped listing for dashboards / history. */
-  async list(user, { status, limit } = {}) {
+  /** Role-scoped listing for dashboards / history / the all-submissions view. */
+  async list(user, { status, type, employeeId, from, to, limit = 500 } = {}) {
+    // Inclusive date range against createdAt (submission time) — `to` is
+    // widened to end-of-day so a same-day from/to still matches everything
+    // submitted that day regardless of time-of-day.
+    const fromTs = from ? new Date(from).toISOString() : null;
+    const toTs = to ? new Date(new Date(to).setHours(23, 59, 59, 999)).toISOString() : null;
+    const inRange = (m) => (!fromTs || m.createdAt >= fromTs) && (!toTs || m.createdAt <= toTs);
+
     if (user.role === ROLES.USER) {
       const items = await meetingRepo.listByUser(user.id, { limit });
-      return withPhotoUrls(items.filter((m) => !status || m.status === status));
+      const filtered = items
+        .filter((m) => !status || m.status === status)
+        .filter((m) => !type || m.type === type)
+        .filter(inRange);
+      return withPhotoUrls(filtered);
     }
     const all = await meetingRepo.listAll();
     const scoped =
       user.role === ROLES.MANAGER ? all.filter((m) => m.managerId === user.id) : all;
     const filtered = scoped
       .filter((m) => !status || m.status === status)
-      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+      .filter((m) => !type || m.type === type)
+      .filter((m) => !employeeId || m.employeeId === employeeId)
+      .filter(inRange)
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+      .slice(0, limit);
     return withPhotoUrls(filtered);
   },
 };

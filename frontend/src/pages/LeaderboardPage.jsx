@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchBoard, fetchMyStanding } from '../features/leaderboard/leaderboardSlice.js';
-import { Card, Spinner, EmptyState, StatCard } from '../components/ui/index.jsx';
+import { Card, Spinner, EmptyState, StatCard, PageHeader } from '../components/ui/index.jsx';
+import Reveal from '../components/ui/Reveal.jsx';
 import { LEADERBOARD_SCOPES, ROLES } from '../constants.js';
 
 const SCOPES = [
@@ -11,7 +12,7 @@ const SCOPES = [
 ];
 
 const RANK_TONE = [
-  'bg-primary/20 text-primary border border-primary/40 font-extrabold shadow-[0_0_8px_rgba(238,179,28,0.3)]',
+  'bg-primary/20 text-primary border border-primary/40 font-extrabold',
   'bg-white/10 text-white border border-white/20 font-bold',
   'bg-bronze/20 text-bronze border border-bronze/40 font-bold',
 ];
@@ -29,18 +30,15 @@ export default function LeaderboardPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold font-heading text-white">Leaderboard</h1>
-        <p className="text-muted text-sm mt-1">Ranked by approved points. Updates the moment a manager approves a meeting.</p>
-      </div>
+      <PageHeader eyebrow="Rankings" title="Leaderboard" subtitle="Ranked by approved points. Updates the moment a manager approves a meeting." />
 
       {user.role === ROLES.USER && me && (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 mb-5">
+        <Reveal className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 mb-5">
           <StatCard label="All-time rank" value={me.alltime.rank ? `#${me.alltime.rank}` : '—'} sub={`${me.alltime.points} pts`} accent="indigo" />
           <StatCard label="Gap to next" value={me.alltime.gapToNext ?? 0} sub="points" accent="amber" />
           <StatCard label="Weekly rank" value={me.weekly.rank ? `#${me.weekly.rank}` : '—'} sub={`${me.weekly.points} pts`} accent="blue" />
           <StatCard label="Monthly rank" value={me.monthly.rank ? `#${me.monthly.rank}` : '—'} sub={`${me.monthly.points} pts`} accent="green" />
-        </div>
+        </Reveal>
       )}
 
       <Card
@@ -52,7 +50,7 @@ export default function LeaderboardPage() {
                 key={s.key}
                 className={`px-3 py-1.75 text-[13px] rounded-[9px] font-semibold cursor-pointer transition-all duration-200 ${
                   scope === s.key
-                    ? 'bg-primary text-on-primary font-bold shadow-[0_0_10px_rgba(238,179,28,0.3)]'
+                    ? 'bg-primary text-on-primary font-bold'
                     : 'bg-transparent text-muted border border-border hover:bg-surface-2 hover:text-white'
                 }`}
                 onClick={() => dispatch(fetchBoard(s.key))}

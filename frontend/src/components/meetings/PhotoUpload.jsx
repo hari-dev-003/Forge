@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import Icon from '../ui/Icon.jsx';
 
 /** Ask the browser for the device's current GPS fix. */
 function getLocation() {
@@ -102,15 +103,26 @@ export default function PhotoUpload({ onSelect, onLocation }) {
     }
   };
 
+  const openPicker = () => inputRef.current?.click();
+
   return (
     <div
-      className="border-2 border-dashed border-border rounded-[14px] p-2 cursor-pointer transition-colors hover:border-primary"
-      onClick={() => inputRef.current?.click()}
+      role="button"
+      tabIndex={0}
+      aria-label={preview ? `${name}, click to change meeting photo` : 'Upload meeting photo'}
+      className="border-2 border-dashed border-border rounded-[14px] p-2 cursor-pointer transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+      onClick={openPicker}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openPicker();
+        }
+      }}
     >
-      <input ref={inputRef} type="file" accept="image/*" hidden onChange={handle} />
+      <input ref={inputRef} type="file" accept="image/*" hidden onChange={handle} tabIndex={-1} />
       {status === 'locating' ? (
         <div className="flex flex-col items-center gap-1.5 p-9 text-muted">
-          <span className="text-[34px]">📍</span>
+          <Icon name="mapPin" size={30} className="text-muted/60" />
           <span>Getting your location…</span>
         </div>
       ) : preview ? (
@@ -120,7 +132,7 @@ export default function PhotoUpload({ onSelect, onLocation }) {
         </div>
       ) : (
         <div className="flex flex-col items-center gap-1.5 p-9 text-muted">
-          <span className="text-[34px]">🖼️</span>
+          <Icon name="image" size={30} className="text-muted/60" />
           <span>Click to upload meeting photo</span>
           <span className="text-xs">A GPS + timestamp watermark is added automatically</span>
         </div>

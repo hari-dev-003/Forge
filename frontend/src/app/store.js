@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import authReducer from '../features/auth/authSlice.js';
 import meetingsReducer from '../features/meetings/meetingsSlice.js';
 import approvalsReducer from '../features/approvals/approvalsSlice.js';
+import submissionsReducer from '../features/submissions/submissionsSlice.js';
 import leaderboardReducer from '../features/leaderboard/leaderboardSlice.js';
 import dashboardReducer from '../features/dashboard/dashboardSlice.js';
 import usersReducer from '../features/users/usersSlice.js';
@@ -14,6 +15,7 @@ export const store = configureStore({
     auth: authReducer,
     meetings: meetingsReducer,
     approvals: approvalsReducer,
+    submissions: submissionsReducer,
     leaderboard: leaderboardReducer,
     dashboard: dashboardReducer,
     users: usersReducer,

@@ -9,7 +9,7 @@ const BTN_SIZE = {
   sm: 'px-3 py-1.75 text-[13px]',
 };
 const BTN_VARIANT = {
-  primary: 'btn-sheen bg-primary text-on-primary font-bold hover:bg-primary-dark shadow-[0_2px_14px_rgba(238,179,28,0.25)]',
+  primary: 'btn-sheen bg-primary text-on-primary font-bold hover:bg-primary-dark',
   success: 'btn-sheen bg-success text-on-primary font-bold hover:brightness-105',
   danger: 'btn-sheen bg-danger text-white hover:brightness-105',
   ghost: 'bg-transparent text-muted border border-border hover:bg-surface-2 hover:text-ink',
@@ -34,7 +34,7 @@ export function Button({ variant = 'primary', size = 'md', loading, children, cl
 
 export function Card({ title, actions, children, className = '' }) {
   return (
-    <section className={`bg-surface border border-border rounded-[14px] shadow-card transition-all duration-300 hover:border-primary/20 mb-5 ${className}`}>
+    <section className={`glow-card bg-surface/80 backdrop-blur-md border border-border rounded-[14px] shadow-card mb-5 ${className}`}>
       {(title || actions) && (
         <header className="flex items-center justify-between px-5 py-4 border-b border-border">
           {title && <h3 className="text-[15px] font-semibold text-white tracking-wide">{title}</h3>}
@@ -47,20 +47,20 @@ export function Card({ title, actions, children, className = '' }) {
 }
 
 const STAT_ACCENT = {
-  indigo: 'before:bg-primary before:shadow-[0_0_8px_rgba(238,179,28,0.6)]',
-  green: 'before:bg-success before:shadow-[0_0_8px_rgba(128,219,102,0.6)]',
-  amber: 'before:bg-warning before:shadow-[0_0_8px_rgba(245,158,11,0.6)]',
-  blue: 'before:bg-info before:shadow-[0_0_8px_rgba(59,130,246,0.6)]',
+  indigo: 'before:bg-primary',
+  green: 'before:bg-success',
+  amber: 'before:bg-warning',
+  blue: 'before:bg-info',
 };
 
 export function StatCard({ label, value, sub, accent = 'indigo' }) {
   return (
     <div
-      className={`relative overflow-hidden bg-surface border border-border rounded-[14px] p-4.5 flex flex-col gap-1 shadow-card transition-all duration-300 hover:border-border/80
+      className={`glow-card relative overflow-hidden bg-surface/80 backdrop-blur-md border border-border rounded-[14px] p-4.5 flex flex-col gap-1 shadow-card
         before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 ${STAT_ACCENT[accent] || STAT_ACCENT.indigo}`}
     >
       <span className="text-xs text-muted font-semibold uppercase tracking-wider">{label}</span>
-      <span className="text-[28px] font-bold tracking-tight leading-none text-white font-heading">{value}</span>
+      <span className="text-[32px] font-bold tracking-tight leading-none text-white font-heading">{value}</span>
       {sub != null && <span className="text-xs text-muted">{sub}</span>}
     </div>
   );
@@ -112,6 +112,36 @@ export function TextArea({ className = '', ...props }) {
   return <textarea className={`${INPUT_CLASS} min-h-[80px] resize-y ${className}`} {...props} />;
 }
 
+export function Checkbox({ label, className = '', ...props }) {
+  return (
+    <label className={`inline-flex items-center gap-2 text-sm text-muted cursor-pointer select-none ${className}`}>
+      <input
+        type="checkbox"
+        className="w-4 h-4 rounded accent-primary bg-surface-2 border border-border cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+        {...props}
+      />
+      {label}
+    </label>
+  );
+}
+
+export function PageHeader({ eyebrow, title, subtitle, actions }) {
+  return (
+    <div className="mb-7 flex justify-between items-start gap-4 flex-wrap">
+      <div>
+        {eyebrow && <span className="text-primary text-xs font-bold uppercase tracking-widest">{eyebrow}</span>}
+        <h1 className="text-[32px] leading-tight font-bold font-heading tracking-tight text-white mt-1">{title}</h1>
+        {subtitle && <p className="text-muted text-sm mt-1.5">{subtitle}</p>}
+      </div>
+      {actions && <div className="flex items-center gap-2">{actions}</div>}
+    </div>
+  );
+}
+
+export function Skeleton({ className = '' }) {
+  return <div className={`bg-surface-2 animate-pulse rounded-[9px] ${className}`} />;
+}
+
 export function Spinner({ label }) {
   return (
     <div className="flex items-center justify-center gap-3 p-15 text-muted">
@@ -121,9 +151,14 @@ export function Spinner({ label }) {
   );
 }
 
-export function EmptyState({ title, hint }) {
+export function EmptyState({ title, hint, icon }) {
   return (
     <div className="text-center p-12 text-muted">
+      {icon && (
+        <div className="w-11 h-11 mx-auto mb-3 rounded-full bg-surface-2 border border-border grid place-items-center text-muted/70">
+          {icon}
+        </div>
+      )}
       <p className="font-semibold text-white">{title}</p>
       {hint && <p className="text-[13px] mt-1.5">{hint}</p>}
     </div>

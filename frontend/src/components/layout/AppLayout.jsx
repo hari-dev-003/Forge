@@ -8,10 +8,11 @@ import Icon from '../ui/Icon.jsx';
 import { ROLES } from '../../constants.js';
 
 const NAV = [
-  { to: '/', label: 'Dashboard', icon: 'grid', end: true, roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.USER] },
+  { to: '/dashboard', label: 'Dashboard', icon: 'grid', end: true, roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.USER] },
   { to: '/submit', label: 'Log Meeting', icon: 'plus', roles: [ROLES.USER] },
   { to: '/meetings', label: 'My Meetings', icon: 'list', roles: [ROLES.USER] },
   { to: '/review', label: 'Review Queue', icon: 'check', roles: [ROLES.MANAGER, ROLES.ADMIN] },
+  { to: '/submissions', label: 'Submissions', icon: 'layers', roles: [ROLES.MANAGER, ROLES.ADMIN] },
   { to: '/leaderboard', label: 'Leaderboard', icon: 'trophy', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.USER] },
   { to: '/team', label: 'Team', icon: 'users', roles: [ROLES.MANAGER, ROLES.ADMIN] },
   { to: '/config', label: 'Points Rules', icon: 'sliders', roles: [ROLES.ADMIN] },
@@ -21,7 +22,7 @@ const NAV = [
 const navItemClass = ({ isActive }) =>
   `flex items-center gap-3 px-3 py-2.5 rounded-[9px] text-sm font-medium transition-all duration-200 ${
     isActive
-      ? 'bg-primary text-on-primary font-bold shadow-[0_0_12px_rgba(238,179,28,0.35)]'
+      ? 'bg-primary text-on-primary font-bold'
       : 'text-muted hover:bg-white/5 hover:text-white'
   }`;
 
@@ -46,15 +47,16 @@ export default function AppLayout() {
       <div className="midnight-effect-2" />
 
       <aside
-        className={`w-61 bg-sidebar border-r border-border text-muted flex flex-col fixed inset-y-0 left-0 z-40 pt-[env(safe-area-inset-top)] transition-transform duration-300 ${
+        className={`w-61 bg-sidebar/95 backdrop-blur-md border-r border-border text-muted flex flex-col fixed inset-y-0 left-0 z-40 pt-[env(safe-area-inset-top)] transition-transform duration-300 overflow-hidden ${
           open ? 'max-[860px]:translate-x-0' : 'max-[860px]:-translate-x-full'
         }`}
       >
-        <div className="flex items-center gap-2.5 px-5 pt-5 pb-6 border-b border-border/40">
-          <span className="w-8.5 h-8.5 rounded-[9px] bg-primary text-on-primary grid place-items-center font-extrabold text-sm shadow-[0_0_10px_rgba(238,179,28,0.4)]">
+        <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-primary/4 blur-3xl pointer-events-none" />
+        <div className="relative flex items-center gap-3 px-5 pt-6 pb-6 border-b border-border/40">
+          <span className="w-9 h-9 rounded-[9px] bg-primary text-on-primary grid place-items-center font-extrabold text-sm">
             F
           </span>
-          <span className="text-base font-semibold text-white font-heading tracking-wide">
+          <span className="text-lg font-semibold text-white font-heading tracking-tight">
             For<b className="text-primary font-extrabold">ge</b>
           </span>
         </div>
@@ -74,7 +76,8 @@ export default function AppLayout() {
       </aside>
 
       <div className="flex-1 ml-61 flex flex-col min-w-0 max-[860px]:ml-0 relative z-10">
-        <header className="h-[calc(64px+env(safe-area-inset-top))] bg-surface/90 backdrop-blur-md border-b border-border flex items-center gap-3 px-6 pt-[env(safe-area-inset-top)] sticky top-0 z-30">
+        <header className="relative h-[calc(64px+env(safe-area-inset-top))] bg-surface/90 backdrop-blur-md border-b border-border flex items-center gap-3 px-6 pt-[env(safe-area-inset-top)] sticky top-0 z-30">
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
           <button
             className="hidden max-[860px]:grid place-items-center w-11 h-11 -ml-2 bg-transparent border-0 cursor-pointer text-muted hover:text-white"
             onClick={() => setOpen((v) => !v)}

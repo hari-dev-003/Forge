@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchQueue, decideMeeting } from '../features/approvals/approvalsSlice.js';
 import { pushToast } from '../features/ui/uiSlice.js';
-import { Spinner, EmptyState, Button, Input } from '../components/ui/index.jsx';
+import { Spinner, EmptyState, Button, Input, PageHeader } from '../components/ui/index.jsx';
+import Reveal from '../components/ui/Reveal.jsx';
 import MeetingCard from '../components/meetings/MeetingCard.jsx';
+import Icon from '../components/ui/Icon.jsx';
 
 export default function ReviewQueuePage() {
   const dispatch = useDispatch();
@@ -36,17 +38,18 @@ export default function ReviewQueuePage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Review queue</h1>
-        <p className="text-muted text-sm mt-1">Approve or reject meetings submitted by your team. Approving awards points instantly.</p>
-      </div>
+      <PageHeader
+        eyebrow="Approvals"
+        title="Review queue"
+        subtitle="Approve or reject meetings submitted by your team. Approving awards points instantly."
+      />
 
       {status === 'loading' ? (
         <Spinner label="Loading queue…" />
       ) : queue.length === 0 ? (
-        <EmptyState title="All caught up 🎉" hint="No meetings are waiting for review." />
+        <EmptyState title="All caught up" hint="No meetings are waiting for review." icon={<Icon name="check" size={20} />} />
       ) : (
-        <div className="grid gap-3.5">
+        <Reveal className="grid gap-3.5">
           {queue.map((m) => (
             <MeetingCard key={m.meetingId} meeting={m} showEmployee>
               {rejectFor === m.meetingId ? (
@@ -86,16 +89,16 @@ export default function ReviewQueuePage() {
                     loading={decidingId === m.meetingId}
                     onClick={() => decide(m.meetingId, 'APPROVE', undefined, ratings[m.meetingId] || undefined)}
                   >
-                    ✓ Approve
+                    <Icon name="check" size={15} /> Approve
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => { setRejectFor(m.meetingId); setReason(''); }}>
-                    ✕ Reject
+                    <Icon name="x" size={15} /> Reject
                   </Button>
                 </>
               )}
             </MeetingCard>
           ))}
-        </div>
+        </Reveal>
       )}
     </div>
   );

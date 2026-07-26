@@ -3,7 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { submitMeeting, resetSubmit } from '../features/meetings/meetingsSlice.js';
 import { pushToast } from '../features/ui/uiSlice.js';
-import { Card, Button, Field, Input, Select, TextArea } from '../components/ui/index.jsx';
+import { Card, Button, Field, Input, Select, TextArea, Checkbox, PageHeader } from '../components/ui/index.jsx';
+import Reveal from '../components/ui/Reveal.jsx';
 import PhotoUpload from '../components/meetings/PhotoUpload.jsx';
 import { MEETING_TYPES, INTEREST_LEVELS } from '../constants.js';
 
@@ -51,7 +52,7 @@ export default function SubmitMeetingPage() {
 
     const res = await dispatch(submitMeeting({ form: payload, file }));
     if (res.meta.requestStatus === 'fulfilled') {
-      dispatch(pushToast({ message: 'Meeting submitted for review 🎉', type: 'success' }));
+      dispatch(pushToast({ message: 'Meeting submitted for review', type: 'success' }));
       dispatch(resetSubmit());
       navigate('/meetings');
     } else {
@@ -61,13 +62,10 @@ export default function SubmitMeetingPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Log a meeting</h1>
-        <p className="text-muted text-sm mt-1">Capture a completed client meeting. It enters your manager's review queue.</p>
-      </div>
+      <PageHeader eyebrow="New entry" title="Log a meeting" subtitle="Capture a completed client meeting. It enters your manager's review queue." />
 
       <form onSubmit={submit}>
-        <div className={GRID_2}>
+        <Reveal className={GRID_2}>
           <Card title="Meeting details">
             <Field label="Meeting type">
               <Select value={form.type} onChange={set('type')}>
@@ -96,10 +94,12 @@ export default function SubmitMeetingPage() {
                 <Field label="Address (optional)">
                   <Input value={form.customerAddress} onChange={set('customerAddress')} placeholder="Area / locality" />
                 </Field>
-                <label className={CHECKBOX_ROW}>
-                  <input type="checkbox" className="w-4 h-4" checked={form.isPremiumClient} onChange={set('isPremiumClient')} />
-                  Premium client (bonus points)
-                </label>
+                <Checkbox
+                  className={CHECKBOX_ROW}
+                  checked={form.isPremiumClient}
+                  onChange={set('isPremiumClient')}
+                  label="Premium client (bonus points)"
+                />
               </>
             )}
           </Card>
@@ -107,8 +107,9 @@ export default function SubmitMeetingPage() {
           <Card title="Proof photo">
             <PhotoUpload onSelect={setFile} onLocation={setLocation} />
           </Card>
-        </div>
+        </Reveal>
 
+        <Reveal delay={80}>
         <Card title="Business outcome">
           <div className={GRID_2}>
             <Field label="Purpose">
@@ -129,14 +130,17 @@ export default function SubmitMeetingPage() {
           <Field label="Remarks">
             <TextArea value={form.remarks} onChange={set('remarks')} placeholder="Any notes for your manager" />
           </Field>
-          <label className={CHECKBOX_ROW}>
-            <input type="checkbox" className="w-4 h-4" checked={form.followUpRequired} onChange={set('followUpRequired')} />
-            Follow-up required
-          </label>
+          <Checkbox
+            className={CHECKBOX_ROW}
+            checked={form.followUpRequired}
+            onChange={set('followUpRequired')}
+            label="Follow-up required"
+          />
 
           {error && <div className="bg-danger-soft text-danger px-3 py-2.5 rounded-[9px] text-[13px] mb-4">{error}</div>}
           <Button type="submit" loading={submitStatus === 'loading'}>Submit for review</Button>
         </Card>
+        </Reveal>
       </form>
     </div>
   );

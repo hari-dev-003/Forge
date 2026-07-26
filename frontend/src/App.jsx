@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchMe } from './features/auth/authSlice.js';
@@ -7,6 +7,7 @@ import { ROLES } from './constants.js';
 import ProtectedRoute from './components/layout/ProtectedRoute.jsx';
 import AppLayout from './components/layout/AppLayout.jsx';
 import Toaster from './components/Toaster.jsx';
+import { Spinner } from './components/ui/index.jsx';
 
 import LoginPage from './pages/LoginPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
@@ -17,7 +18,12 @@ import LeaderboardPage from './pages/LeaderboardPage.jsx';
 import TeamPage from './pages/TeamPage.jsx';
 import PointsConfigPage from './pages/PointsConfigPage.jsx';
 import AuditLogPage from './pages/AuditLogPage.jsx';
+import SubmissionsPage from './pages/SubmissionsPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
+
+// Lazy-loaded: the public landing page pulls in GSAP, which authenticated
+// users (who never see it after redirect) shouldn't have to download.
+const LandingPage = lazy(() => import('./pages/landing/LandingPage.jsx'));
 
 export default function App() {
   const dispatch = useDispatch();
@@ -32,11 +38,23 @@ export default function App() {
     <>
       <Toaster />
       <Routes>
+        <Route
+          path="/"
+          element={
+            token ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <Suspense fallback={<Spinner label="Loading…" />}>
+                <LandingPage />
+              </Suspense>
+            )
+          }
+        />
         <Route path="/login" element={<LoginPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
-            <Route index element={<DashboardPage />} />
+            <Route path="dashboard" element={<DashboardPage />} />
             <Route path="leaderboard" element={<LeaderboardPage />} />
 
             <Route element={<ProtectedRoute roles={[ROLES.USER]} />}>
@@ -46,6 +64,7 @@ export default function App() {
 
             <Route element={<ProtectedRoute roles={[ROLES.MANAGER, ROLES.ADMIN]} />}>
               <Route path="review" element={<ReviewQueuePage />} />
+              <Route path="submissions" element={<SubmissionsPage />} />
               <Route path="team" element={<TeamPage />} />
             </Route>
 

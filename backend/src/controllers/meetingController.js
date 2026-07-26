@@ -13,7 +13,15 @@ export const meetingController = {
   }),
 
   list: asyncHandler(async (req, res) => {
-    const meetings = await meetingService.list(req.user, { status: req.query.status });
+    const { status, type, employeeId, from, to, limit } = req.query;
+    const meetings = await meetingService.list(req.user, {
+      status,
+      type,
+      employeeId,
+      from,
+      to,
+      limit: limit ? Number(limit) : undefined,
+    });
     list(res, meetings);
   }),
 

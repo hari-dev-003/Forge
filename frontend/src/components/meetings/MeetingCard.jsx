@@ -1,4 +1,5 @@
 import { Badge } from '../ui/index.jsx';
+import Icon from '../ui/Icon.jsx';
 import { assetUrl } from '../../api/client.js';
 import { MEETING_TYPES } from '../../constants.js';
 
@@ -10,7 +11,7 @@ export default function MeetingCard({ meeting, showEmployee, children }) {
   const title = isGroup ? meeting.group?.name : meeting.customer?.name;
 
   return (
-    <article className="flex gap-4 bg-surface border border-border rounded-[14px] p-3.5 shadow-card">
+    <article className="glow-card flex gap-4 bg-surface/80 backdrop-blur-md border border-border rounded-[14px] p-3.5 shadow-card">
       <div className="w-24 h-24 rounded-[9px] overflow-hidden shrink-0 bg-surface-2">
         {meeting.photo?.url ? (
           <img
@@ -20,7 +21,9 @@ export default function MeetingCard({ meeting, showEmployee, children }) {
             onError={(e) => (e.target.style.display = 'none')}
           />
         ) : (
-          <div className="w-full h-full grid place-items-center text-[34px]">{isGroup ? '👥' : '🧑'}</div>
+          <div className="w-full h-full grid place-items-center text-muted/50">
+            <Icon name={isGroup ? 'users' : 'user'} size={30} />
+          </div>
         )}
       </div>
 
@@ -47,14 +50,18 @@ export default function MeetingCard({ meeting, showEmployee, children }) {
         </div>
 
         <div className="flex flex-wrap gap-3.5 mt-2.5 text-[13px] text-muted">
-          {showEmployee && meeting.employeeName && <span>👤 {meeting.employeeName}</span>}
+          {showEmployee && meeting.employeeName && (
+            <span className="inline-flex items-center gap-1.5"><Icon name="user" size={14} />{meeting.employeeName}</span>
+          )}
           {isGroup ? (
-            <span>👥 {meeting.group?.attendees} attendees</span>
+            <span className="inline-flex items-center gap-1.5"><Icon name="users" size={14} />{meeting.group?.attendees} attendees</span>
           ) : (
-            meeting.customer?.phone && <span>📞 {meeting.customer.phone}</span>
+            meeting.customer?.phone && (
+              <span className="inline-flex items-center gap-1.5"><Icon name="phone" size={14} />{meeting.customer.phone}</span>
+            )
           )}
           {meeting.isPremiumClient && <span className="text-warning font-semibold">★ Premium</span>}
-          <span>🕒 {fmt(meeting.createdAt)}</span>
+          <span className="inline-flex items-center gap-1.5"><Icon name="clock" size={14} />{fmt(meeting.createdAt)}</span>
         </div>
 
         {meeting.business?.purpose && <p className="mt-2.5 text-[13px] text-ink">{meeting.business.purpose}</p>}

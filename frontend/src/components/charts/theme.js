@@ -19,12 +19,16 @@ export { echarts };
 // `.default` when that happens.
 export const ReactEChartsCore = ReactEChartsCoreImport?.default ?? ReactEChartsCoreImport;
 
-export const CHART_COLORS = ['#eeb31c', '#80db66', '#3b82f6', '#f59e0b', '#ef4444'];
+// Gold-forward, not a rainbow: lead with the primary accent + a muted
+// neutral (the two colors that actually show up in the 2-category donut),
+// success/danger kept only as semantic fallbacks for genuinely
+// positive/negative categories, not arbitrary series filler.
+export const CHART_COLORS = ['#eeb31c', '#9b9db1', '#cb960e', '#80db66', '#ef4444'];
 
 export const axisCommon = {
   axisLine: { lineStyle: { color: 'rgba(204,211,217,0.2)' } },
-  axisLabel: { color: '#9b9db1', fontFamily: 'Open Sans, sans-serif', fontSize: 11 },
-  splitLine: { lineStyle: { color: 'rgba(204,211,217,0.08)' } },
+  axisLabel: { color: '#9b9db1', fontFamily: 'DM Sans, sans-serif', fontSize: 11 },
+  splitLine: { lineStyle: { color: 'rgba(204,211,217,0.06)' } },
   axisTick: { show: false },
 };
 
@@ -32,5 +36,5 @@ export const tooltipCommon = {
   backgroundColor: '#25262f',
   borderColor: 'rgba(204,211,217,0.2)',
   borderWidth: 1,
-  textStyle: { color: '#ffffff', fontFamily: 'Open Sans, sans-serif', fontSize: 12 },
+  textStyle: { color: '#ffffff', fontFamily: 'DM Sans, sans-serif', fontSize: 12 },
 };
