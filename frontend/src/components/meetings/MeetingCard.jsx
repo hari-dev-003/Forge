@@ -5,10 +5,22 @@ import { MEETING_TYPES } from '../../constants.js';
 
 const fmt = (iso) => (iso ? new Date(iso).toLocaleString() : '');
 
+const TYPE_TAG = {
+  [MEETING_TYPES.GROUP]: { label: 'Group', className: 'bg-success-soft text-success' },
+  [MEETING_TYPES.DIRECT_CONVERSION]: { label: 'Direct conversion', className: 'bg-info/15 text-info' },
+};
+const DEFAULT_TAG = { label: '1-to-1', className: 'bg-primary-soft text-primary' };
+
 /** Reusable meeting summary used in the review queue and history lists. */
 export default function MeetingCard({ meeting, showEmployee, children }) {
   const isGroup = meeting.type === MEETING_TYPES.GROUP;
-  const title = isGroup ? meeting.group?.name : meeting.customer?.name;
+  const isDirectConversion = meeting.type === MEETING_TYPES.DIRECT_CONVERSION;
+  const title = isGroup
+    ? meeting.group?.name
+    : isDirectConversion
+      ? meeting.directConversion?.name
+      : meeting.customer?.name;
+  const tag = TYPE_TAG[meeting.type] || DEFAULT_TAG;
 
   return (
     <article className="glow-card flex gap-4 bg-surface/80 backdrop-blur-md border border-border rounded-[14px] p-3.5 shadow-card">
@@ -22,7 +34,7 @@ export default function MeetingCard({ meeting, showEmployee, children }) {
           />
         ) : (
           <div className="w-full h-full grid place-items-center text-muted/50">
-            <Icon name={isGroup ? 'users' : 'user'} size={30} />
+            <Icon name={isGroup ? 'users' : isDirectConversion ? 'trendingUp' : 'user'} size={30} />
           </div>
         )}
       </div>
@@ -30,12 +42,8 @@ export default function MeetingCard({ meeting, showEmployee, children }) {
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-start gap-3">
           <div>
-            <span
-              className={`text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${
-                isGroup ? 'bg-success-soft text-success' : 'bg-primary-soft text-primary'
-              }`}
-            >
-              {isGroup ? 'Group' : '1-to-1'}
+            <span className={`text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${tag.className}`}>
+              {tag.label}
             </span>
             <h4 className="text-base mt-1 font-semibold">{title || 'Untitled meeting'}</h4>
           </div>
@@ -55,6 +63,15 @@ export default function MeetingCard({ meeting, showEmployee, children }) {
           )}
           {isGroup ? (
             <span className="inline-flex items-center gap-1.5"><Icon name="users" size={14} />{meeting.group?.attendees} attendees</span>
+          ) : isDirectConversion ? (
+            <>
+              {meeting.directConversion?.phone && (
+                <span className="inline-flex items-center gap-1.5"><Icon name="phone" size={14} />{meeting.directConversion.phone}</span>
+              )}
+              <span className="font-semibold text-primary">
+                {meeting.directConversion?.stakingType} · {meeting.directConversion?.stakingVolume?.toLocaleString()}
+              </span>
+            </>
           ) : (
             meeting.customer?.phone && (
               <span className="inline-flex items-center gap-1.5"><Icon name="phone" size={14} />{meeting.customer.phone}</span>

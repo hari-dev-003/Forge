@@ -5,16 +5,27 @@ import { api, unwrap, apiError } from '../../api/client.js';
 /**
  * Full submission flow: presign -> upload photo straight to storage (S3/local)
  * -> create the meeting referencing the returned key. Mirrors production.
+ * `screenshotFile` is optional (Direct Conversion's second, non-GPS upload).
  */
 export const submitMeeting = createAsyncThunk(
   'meetings/submit',
-  async ({ form, file }, { rejectWithValue }) => {
+  async ({ form, file, screenshotFile }, { rejectWithValue }) => {
     try {
       const target = unwrap(await api.post('/uploads/presign', { contentType: file.type }));
       await axios.put(target.uploadUrl, file, { headers: target.headers });
-      const meeting = unwrap(
-        await api.post('/meetings', { ...form, photo: { key: target.key, caption: form.photoCaption || '' } })
-      );
+
+      let payload = { ...form, photo: { key: target.key, caption: form.photoCaption || '' } };
+
+      if (screenshotFile) {
+        const scTarget = unwrap(await api.post('/uploads/presign', { contentType: screenshotFile.type }));
+        await axios.put(scTarget.uploadUrl, screenshotFile, { headers: scTarget.headers });
+        payload = {
+          ...payload,
+          directConversion: { ...payload.directConversion, screenshot: { key: scTarget.key } },
+        };
+      }
+
+      const meeting = unwrap(await api.post('/meetings', payload));
       return meeting.meeting;
     } catch (e) {
       return rejectWithValue(apiError(e));

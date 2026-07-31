@@ -1,4 +1,4 @@
-import { useEffect, Suspense, lazy } from 'react';
+import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchMe } from './features/auth/authSlice.js';
@@ -7,7 +7,6 @@ import { ROLES } from './constants.js';
 import ProtectedRoute from './components/layout/ProtectedRoute.jsx';
 import AppLayout from './components/layout/AppLayout.jsx';
 import Toaster from './components/Toaster.jsx';
-import { Spinner } from './components/ui/index.jsx';
 
 import LoginPage from './pages/LoginPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
@@ -20,10 +19,6 @@ import PointsConfigPage from './pages/PointsConfigPage.jsx';
 import AuditLogPage from './pages/AuditLogPage.jsx';
 import SubmissionsPage from './pages/SubmissionsPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
-
-// Lazy-loaded: the public landing page pulls in GSAP, which authenticated
-// users (who never see it after redirect) shouldn't have to download.
-const LandingPage = lazy(() => import('./pages/landing/LandingPage.jsx'));
 
 export default function App() {
   const dispatch = useDispatch();
@@ -38,18 +33,7 @@ export default function App() {
     <>
       <Toaster />
       <Routes>
-        <Route
-          path="/"
-          element={
-            token ? (
-              <Navigate to="/dashboard" replace />
-            ) : (
-              <Suspense fallback={<Spinner label="Loading…" />}>
-                <LandingPage />
-              </Suspense>
-            )
-          }
-        />
+        <Route path="/" element={<Navigate to={token ? '/dashboard' : '/login'} replace />} />
         <Route path="/login" element={<LoginPage />} />
 
         <Route element={<ProtectedRoute />}>

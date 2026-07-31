@@ -3,8 +3,8 @@ import { asyncHandler, ok, list } from '../lib/http.js';
 
 export const userController = {
   create: asyncHandler(async (req, res) => {
-    const user = await userService.createUser(req.user, req.body);
-    ok(res, { user }, 201);
+    const { user, tempPassword } = await userService.createUser(req.user, req.body);
+    ok(res, { user, ...(tempPassword ? { tempPassword } : {}) }, 201);
   }),
 
   list: asyncHandler(async (req, res) => {

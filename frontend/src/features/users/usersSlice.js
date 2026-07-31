@@ -19,7 +19,9 @@ export const fetchManagers = createAsyncThunk('users/managers', async (_, { reje
 
 export const createUser = createAsyncThunk('users/create', async (payload, { rejectWithValue }) => {
   try {
-    return unwrap(await api.post('/users', payload)).user;
+    // { user, tempPassword? } — tempPassword is only present for a
+    // Manager-created User (Admin sets the Manager's password themselves).
+    return unwrap(await api.post('/users', payload));
   } catch (e) {
     return rejectWithValue(apiError(e));
   }
@@ -35,11 +37,12 @@ export const updateUser = createAsyncThunk('users/update', async ({ id, patch },
 
 const usersSlice = createSlice({
   name: 'users',
-  initialState: { list: [], managers: [], status: 'idle', createStatus: 'idle', error: null },
+  initialState: { list: [], managers: [], status: 'idle', createStatus: 'idle', error: null, lastCreated: null },
   reducers: {
     resetCreate(state) {
       state.createStatus = 'idle';
       state.error = null;
+      state.lastCreated = null;
     },
   },
   extraReducers: (builder) => {
@@ -49,7 +52,11 @@ const usersSlice = createSlice({
       .addCase(fetchUsers.rejected, (s, a) => { s.status = 'failed'; s.error = a.payload; })
       .addCase(fetchManagers.fulfilled, (s, a) => { s.managers = a.payload; })
       .addCase(createUser.pending, (s) => { s.createStatus = 'loading'; s.error = null; })
-      .addCase(createUser.fulfilled, (s, a) => { s.createStatus = 'succeeded'; s.list.push(a.payload); })
+      .addCase(createUser.fulfilled, (s, a) => {
+        s.createStatus = 'succeeded';
+        s.list.push(a.payload.user);
+        s.lastCreated = a.payload; // { user, tempPassword? } — shown once so it can be shared
+      })
       .addCase(createUser.rejected, (s, a) => { s.createStatus = 'failed'; s.error = a.payload; })
       .addCase(updateUser.fulfilled, (s, a) => {
         const i = s.list.findIndex((u) => u.id === a.payload.id);

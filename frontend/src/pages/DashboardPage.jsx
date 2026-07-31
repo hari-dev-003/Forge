@@ -26,9 +26,12 @@ function fmtRelative(iso) {
 
 function TypeTag({ type }) {
   const isGroup = type === MEETING_TYPES.GROUP;
+  const isDirectConversion = type === MEETING_TYPES.DIRECT_CONVERSION;
+  const className = isGroup ? 'bg-success-soft text-success' : isDirectConversion ? 'bg-info/15 text-info' : 'bg-primary-soft text-primary';
+  const label = isGroup ? 'Group' : isDirectConversion ? 'Direct conversion' : '1-to-1';
   return (
-    <span className={`text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${isGroup ? 'bg-success-soft text-success' : 'bg-primary-soft text-primary'}`}>
-      {isGroup ? 'Group' : '1-to-1'}
+    <span className={`text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${className}`}>
+      {label}
     </span>
   );
 }
@@ -89,7 +92,7 @@ function RecentActivityCard({ items }) {
           {items.map((m) => (
             <div key={m.meetingId} className="flex items-center gap-3 px-3 py-2 rounded-[9px] hover:bg-surface-2 transition-colors">
               <span className="w-7 h-7 rounded-full bg-surface-2 grid place-items-center shrink-0">
-                <Icon name={m.type === MEETING_TYPES.GROUP ? 'users' : 'user'} size={13} className="text-muted" />
+                <Icon name={m.type === MEETING_TYPES.GROUP ? 'users' : m.type === MEETING_TYPES.DIRECT_CONVERSION ? 'trendingUp' : 'user'} size={13} className="text-muted" />
               </span>
               <span className="flex-1 text-sm text-white truncate">{m.employeeName}</span>
               <Badge status={m.status} />
@@ -138,16 +141,16 @@ function PerformanceCard({ rows, isAdmin }) {
   );
 }
 
-function RegionsCard({ regions }) {
+function CitiesCard({ cities }) {
   return (
-    <Card title="By region">
+    <Card title="By city">
       <div className="flex flex-col gap-1.5">
-        {regions.map((r) => (
-          <div key={r.region} className="flex items-center gap-3 px-3 py-2 rounded-[9px] hover:bg-surface-2 transition-colors">
+        {cities.map((c) => (
+          <div key={c.city} className="flex items-center gap-3 px-3 py-2 rounded-[9px] hover:bg-surface-2 transition-colors">
             <Icon name="globe" size={14} className="text-muted shrink-0" />
-            <span className="flex-1 text-sm text-white">{r.region}</span>
-            <span className="text-xs text-muted">{r.count} meetings</span>
-            <span className="text-sm font-bold text-primary">{r.points} pts</span>
+            <span className="flex-1 text-sm text-white">{c.city}</span>
+            <span className="text-xs text-muted">{c.count} meetings</span>
+            <span className="text-sm font-bold text-primary">{c.points} pts</span>
           </div>
         ))}
       </div>
@@ -159,7 +162,7 @@ function DashboardSkeleton() {
   return (
     <>
       <div className={`${STAT_GRID} mb-5`}>
-        {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-21" />)}
+        {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-21" />)}
       </div>
       <div className="grid grid-cols-2 gap-4 mb-5 max-[860px]:grid-cols-1">
         <Card title="Meetings — last 7 days"><Skeleton className="h-50" /></Card>
@@ -220,6 +223,7 @@ export default function DashboardPage() {
                 data={[
                   { name: '1-to-1', value: k.byType.ONE_TO_ONE },
                   { name: 'Group', value: k.byType.GROUP },
+                  { name: 'Direct conversion', value: k.byType.DIRECT_CONVERSION },
                 ]}
               />
             </Card>
@@ -232,6 +236,7 @@ export default function DashboardPage() {
                 <StatCard label="Rejected" value={k.byStatus.REJECTED} accent="amber" />
                 <StatCard label="1-to-1" value={k.byType.ONE_TO_ONE} accent="blue" />
                 <StatCard label="Group" value={k.byType.GROUP} accent="indigo" />
+                <StatCard label="Direct conversion" value={k.byType.DIRECT_CONVERSION} accent="amber" />
               </div>
             </Card>
           </Reveal>
@@ -244,8 +249,6 @@ export default function DashboardPage() {
             <StatCard label="Pending review" value={k.byStatus.PENDING} accent="amber" />
             <StatCard label="Approval rate" value={`${k.approvalRate}%`} accent="green" />
             <StatCard label="Points awarded" value={summary.pointsAwarded} accent="indigo" />
-            <StatCard label="Premium rate" value={`${summary.premiumRate}%`} accent="amber" />
-            <StatCard label="Avg quality" value={summary.quality.avg > 0 ? `${summary.quality.avg}★` : '—'} sub={`${summary.quality.count} rated`} accent="blue" />
             <StatCard label={isAdmin ? 'Field users' : 'Team size'} value={summary.counts?.teamSize ?? 0} accent="blue" />
             {isAdmin && <StatCard label="Managers" value={summary.counts?.managers ?? 0} accent="indigo" />}
             {isAdmin && (
@@ -267,6 +270,7 @@ export default function DashboardPage() {
                 data={[
                   { name: '1-to-1', value: k.byType.ONE_TO_ONE },
                   { name: 'Group', value: k.byType.GROUP },
+                  { name: 'Direct conversion', value: k.byType.DIRECT_CONVERSION },
                 ]}
               />
             </Card>
@@ -281,7 +285,7 @@ export default function DashboardPage() {
             <PerformanceCard rows={summary.performance || []} isAdmin={isAdmin} />
           </Reveal>
 
-          {summary.regions ? (
+          {summary.cities ? (
             <Reveal delay={320} className="grid grid-cols-2 gap-4 max-[860px]:grid-cols-1">
               <Card title="Top performers">
                 {(summary.leaderboardPreview || []).length === 0 ? (
@@ -290,7 +294,7 @@ export default function DashboardPage() {
                   <BarChart data={summary.leaderboardPreview} height={Math.max(160, summary.leaderboardPreview.length * 42)} />
                 )}
               </Card>
-              <RegionsCard regions={summary.regions} />
+              <CitiesCard cities={summary.cities} />
             </Reveal>
           ) : (
             <Reveal delay={320}>

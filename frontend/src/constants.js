@@ -1,7 +1,11 @@
 // Mirrors backend/src/config/constants.js — keep in sync.
 export const ROLES = { ADMIN: 'ADMIN', MANAGER: 'MANAGER', USER: 'USER' };
 
-export const MEETING_TYPES = { ONE_TO_ONE: 'ONE_TO_ONE', GROUP: 'GROUP' };
+export const MEETING_TYPES = { ONE_TO_ONE: 'ONE_TO_ONE', GROUP: 'GROUP', DIRECT_CONVERSION: 'DIRECT_CONVERSION' };
+
+// Mirrors backend/src/config/constants.js — for a live preview only; the
+// server always derives the authoritative stacking type from stakingVolume.
+export const STAKING_VOLUME_THRESHOLD = 100000;
 
 export const MEETING_STATUS = {
   PENDING: 'PENDING',

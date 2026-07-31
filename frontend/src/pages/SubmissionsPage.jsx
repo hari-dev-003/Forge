@@ -96,6 +96,7 @@ export default function SubmissionsPage() {
                 <option value="">All types</option>
                 <option value={MEETING_TYPES.ONE_TO_ONE}>One-to-one</option>
                 <option value={MEETING_TYPES.GROUP}>Group</option>
+                <option value={MEETING_TYPES.DIRECT_CONVERSION}>Direct conversion</option>
               </Select>
             </Field>
             {employees.length > 0 && (
@@ -149,7 +150,8 @@ export default function SubmissionsPage() {
                 <tbody>
                   {pageItems.map((m) => {
                     const isGroup = m.type === MEETING_TYPES.GROUP;
-                    const title = isGroup ? m.group?.name : m.customer?.name;
+                    const isDirectConversion = m.type === MEETING_TYPES.DIRECT_CONVERSION;
+                    const title = isGroup ? m.group?.name : isDirectConversion ? m.directConversion?.name : m.customer?.name;
                     const expanded = expandedId === m.meetingId;
                     return (
                       <Fragment key={m.meetingId}>
@@ -166,8 +168,12 @@ export default function SubmissionsPage() {
                             <div className="text-xs text-muted">{title || '—'}</div>
                           </td>
                           <td className={TD}>
-                            <span className={`text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${isGroup ? 'bg-success-soft text-success' : 'bg-primary-soft text-primary'}`}>
-                              {isGroup ? 'Group' : '1-to-1'}
+                            <span
+                              className={`text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${
+                                isGroup ? 'bg-success-soft text-success' : isDirectConversion ? 'bg-info/15 text-info' : 'bg-primary-soft text-primary'
+                              }`}
+                            >
+                              {isGroup ? 'Group' : isDirectConversion ? 'Direct conversion' : '1-to-1'}
                             </span>
                           </td>
                           <td className={TD}><Badge status={m.status} /></td>
@@ -186,24 +192,45 @@ export default function SubmissionsPage() {
                           <tr className="bg-surface-2/60">
                             <td colSpan={6} className="px-3.5 py-4 border-b border-border">
                               <div className="grid grid-cols-[auto_1fr] gap-5">
-                                {m.photo?.url && (
-                                  <img
-                                    src={assetUrl(m.photo.url)}
-                                    alt="Meeting proof"
-                                    className="w-28 h-28 rounded-[9px] object-cover border border-border"
-                                  />
-                                )}
+                                <div className="flex gap-2">
+                                  {m.photo?.url && (
+                                    <img
+                                      src={assetUrl(m.photo.url)}
+                                      alt="Meeting proof"
+                                      className="w-28 h-28 rounded-[9px] object-cover border border-border"
+                                    />
+                                  )}
+                                  {isDirectConversion && m.directConversion?.screenshot?.url && (
+                                    <img
+                                      src={assetUrl(m.directConversion.screenshot.url)}
+                                      alt="Screenshot"
+                                      className="w-28 h-28 rounded-[9px] object-cover border border-border"
+                                    />
+                                  )}
+                                </div>
                                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-[13px]">
                                   {isGroup ? (
                                     <div><span className="text-muted">Attendees:</span> {m.group?.attendees ?? '—'}</div>
+                                  ) : isDirectConversion ? (
+                                    <>
+                                      <div><span className="text-muted">Business centre:</span> {m.directConversion?.businessCentre || '—'}</div>
+                                      <div><span className="text-muted">Nexus mail ID:</span> {m.directConversion?.nexusMailId || '—'}</div>
+                                      <div><span className="text-muted">Phone:</span> {m.directConversion?.phone || '—'}</div>
+                                      <div><span className="text-muted">Stacking type:</span> {m.directConversion?.stakingType || '—'}</div>
+                                      <div className="col-span-2"><span className="text-muted">Staking volume:</span> {m.directConversion?.stakingVolume?.toLocaleString() ?? '—'}</div>
+                                    </>
                                   ) : (
                                     <div><span className="text-muted">Phone:</span> {m.customer?.phone || '—'}</div>
                                   )}
                                   {m.isPremiumClient && <div className="text-warning font-semibold">★ Premium client</div>}
-                                  <div className="col-span-2"><span className="text-muted">Purpose:</span> {m.business?.purpose || '—'}</div>
-                                  <div className="col-span-2"><span className="text-muted">Outcome:</span> {m.business?.outcome || '—'}</div>
-                                  {m.business?.remarks && (
-                                    <div className="col-span-2"><span className="text-muted">Remarks:</span> {m.business.remarks}</div>
+                                  {!isDirectConversion && (
+                                    <>
+                                      <div className="col-span-2"><span className="text-muted">Purpose:</span> {m.business?.purpose || '—'}</div>
+                                      <div className="col-span-2"><span className="text-muted">Outcome:</span> {m.business?.outcome || '—'}</div>
+                                      {m.business?.remarks && (
+                                        <div className="col-span-2"><span className="text-muted">Remarks:</span> {m.business.remarks}</div>
+                                      )}
+                                    </>
                                   )}
                                   {m.review?.qualityScore && (
                                     <div className="col-span-2 text-primary">Quality: {'★'.repeat(m.review.qualityScore)}{'★'.repeat(5 - m.review.qualityScore).split('').map((_, i) => <span key={i} className="text-muted/40">★</span>)}</div>

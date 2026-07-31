@@ -3,8 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 /**
  * Lightweight scroll-in reveal for the authenticated app — plain
  * IntersectionObserver + CSS (see .reveal in index.css), no animation
- * library. Pairs with the GSAP-driven <Reveal> used on the public landing
- * page, which needs richer choreography; this one just needs to be cheap.
+ * library.
  */
 export default function Reveal({ as: Tag = 'div', delay = 0, className = '', children, ...props }) {
   const ref = useRef(null);

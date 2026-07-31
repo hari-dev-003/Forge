@@ -1,60 +1,63 @@
 import { userRepo } from '../repositories/userRepo.js';
 import { authProvider } from '../auth/index.js';
 import { auditRepo } from '../repositories/auditRepo.js';
+import { generateTempPassword } from '../lib/passwords.js';
 import { ROLES } from '../config/constants.js';
-import { NotFoundError } from '../lib/errors.js';
+import { BadRequestError, ForbiddenError, NotFoundError } from '../lib/errors.js';
 
 export const userService = {
-  /** Admin creates a manager (with credentials for local auth) — always immediately active. */
-  async createUser(actor, dto) {
-    const { user } = await authProvider.adminCreateUser({
-      email: dto.email,
-      password: dto.password,
-      name: dto.name,
-      role: ROLES.MANAGER,
-      managerId: null,
-      region: dto.region,
-    });
-    await auditRepo.record({
-      actorId: actor.id,
-      actorRole: actor.role,
-      action: 'USER_CREATED',
-      target: user.id,
-      meta: { email: user.email, role: user.role },
-    });
-    return user;
-  },
-
   /**
-   * Public self-signup — kicks off Cognito's SignUp flow (emails a
-   * verification code, this pool auto-verifies email). No DynamoDB profile
-   * exists yet; confirmSignup() below finishes provisioning once verified.
+   * Provisioning is entirely actor-driven — the client never chooses a role:
+   *   Admin   -> creates a Manager, with a password the admin sets themselves
+   *              (permanent, no forced change — matches existing behaviour).
+   *   Manager -> creates a User on their own team, with a server-generated
+   *              temporary password (returned once, here, for the manager to
+   *              share) that Cognito forces the employee to change on first login.
    */
-  async signup(dto) {
-    await authProvider.selfSignUp({ email: dto.email, password: dto.password, name: dto.name });
-  },
+  async createUser(actor, dto) {
+    if (actor.role === ROLES.ADMIN) {
+      if (!dto.password) throw new BadRequestError('A temporary password is required');
+      const { user } = await authProvider.adminCreateUser({
+        email: dto.email,
+        password: dto.password,
+        name: dto.name,
+        role: ROLES.MANAGER,
+        managerId: null,
+        city: dto.city,
+        permanent: true,
+      });
+      await auditRepo.record({
+        actorId: actor.id,
+        actorRole: actor.role,
+        action: 'USER_CREATED',
+        target: user.id,
+        meta: { email: user.email, role: user.role },
+      });
+      return { user };
+    }
 
-  /** Verify the emailed code and finish provisioning the field-user account. */
-  async confirmSignup(dto) {
-    const { user } = await authProvider.confirmSignUp({
-      email: dto.email,
-      code: dto.code,
-      name: dto.name,
-      userId: dto.userId,
-    });
-    await auditRepo.record({
-      actorId: user.id,
-      actorRole: ROLES.USER,
-      action: 'USER_SIGNUP_CONFIRMED',
-      target: user.id,
-      meta: { email: user.email },
-    });
-    return user;
-  },
+    if (actor.role === ROLES.MANAGER) {
+      const tempPassword = generateTempPassword();
+      const { user } = await authProvider.adminCreateUser({
+        email: dto.email,
+        password: tempPassword,
+        name: dto.name,
+        role: ROLES.USER,
+        managerId: actor.id,
+        city: dto.city,
+        permanent: false,
+      });
+      await auditRepo.record({
+        actorId: actor.id,
+        actorRole: actor.role,
+        action: 'USER_CREATED',
+        target: user.id,
+        meta: { email: user.email, role: user.role },
+      });
+      return { user, tempPassword };
+    }
 
-  /** Re-send the signup verification code. */
-  async resendSignupCode(dto) {
-    await authProvider.resendSignUpCode({ email: dto.email });
+    throw new ForbiddenError();
   },
 
   async getProfile(id) {
@@ -83,7 +86,7 @@ export const userService = {
     const user = await userRepo.getById(id);
     if (!user) throw new NotFoundError('User not found');
     const allowed = {};
-    for (const k of ['name', 'region', 'active', 'managerId']) {
+    for (const k of ['name', 'city', 'active', 'managerId']) {
       if (patch[k] !== undefined) allowed[k] = patch[k];
     }
     const updated = await userRepo.update(id, allowed);

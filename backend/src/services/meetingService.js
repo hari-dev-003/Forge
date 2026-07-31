@@ -2,7 +2,7 @@ import { meetingRepo } from '../repositories/meetingRepo.js';
 import { auditRepo } from '../repositories/auditRepo.js';
 import { withPhotoUrl, withPhotoUrls } from './photoUrls.js';
 import { newId } from '../lib/ids.js';
-import { ROLES, MEETING_STATUS, MEETING_TYPES } from '../config/constants.js';
+import { ROLES, MEETING_STATUS, MEETING_TYPES, STAKING_VOLUME_THRESHOLD, STAKING_TYPES } from '../config/constants.js';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../lib/errors.js';
 
 /** Can this principal see this meeting? */
@@ -34,7 +34,7 @@ export const meetingService = {
       employeeId: user.id,
       employeeName: user.name,
       managerId: user.managerId,
-      region: user.region || 'UNASSIGNED',
+      city: user.city || 'UNASSIGNED',
       photo: { key: dto.photo.key, caption: dto.photo.caption || '' },
       location: dto.location || null,
       isPremiumClient: !!dto.isPremiumClient,
@@ -58,14 +58,35 @@ export const meetingService = {
       meeting.customer = {
         name: dto.customer.name,
         phone: dto.customer.phone || '',
-        address: dto.customer.address || '',
+        city: dto.customer.city || '',
       };
-    } else {
+    } else if (dto.type === MEETING_TYPES.GROUP) {
       if (!dto.group?.name) throw new BadRequestError('Group meeting name is required');
+      if (!dto.group?.attendeeList?.length) throw new BadRequestError('At least 2 attendee details are required');
       meeting.group = {
         name: dto.group.name,
-        attendees: Number(dto.group.attendees) || 0,
-        attendeeList: Array.isArray(dto.group.attendeeList) ? dto.group.attendeeList : [],
+        // attendees is derived from the attendee list itself — the client
+        // can't just claim a headcount without matching named details.
+        attendees: dto.group.attendeeList.length,
+        attendeeList: dto.group.attendeeList.map((m) => ({
+          name: m.name,
+          phone: m.phone || '',
+          city: m.city || '',
+        })),
+      };
+    } else {
+      if (!dto.directConversion?.name) throw new BadRequestError('Name is required');
+      if (!dto.directConversion?.screenshot?.key) throw new BadRequestError('A screenshot is required');
+      const stakingVolume = Number(dto.directConversion.stakingVolume) || 0;
+      meeting.directConversion = {
+        name: dto.directConversion.name,
+        businessCentre: dto.directConversion.businessCentre || '',
+        nexusMailId: dto.directConversion.nexusMailId || '',
+        phone: dto.directConversion.phone || '',
+        stakingVolume,
+        // Derived server-side — never trust a client-supplied stacking type.
+        stackingType: stakingVolume >= STAKING_VOLUME_THRESHOLD ? STAKING_TYPES.ESP : STAKING_TYPES.BVS,
+        screenshot: { key: dto.directConversion.screenshot.key },
       };
     }
 

@@ -13,7 +13,7 @@ const isToday = (iso) => iso?.slice(0, 10) === dayKey();
 function tally(meetings) {
   const today = meetings.filter((m) => isToday(m.createdAt)).length;
   const byStatus = { PENDING: 0, APPROVED: 0, REJECTED: 0, MODIFICATION_REQUESTED: 0 };
-  const byType = { ONE_TO_ONE: 0, GROUP: 0 };
+  const byType = { ONE_TO_ONE: 0, GROUP: 0, DIRECT_CONVERSION: 0 };
   for (const m of meetings) {
     byStatus[m.status] = (byStatus[m.status] || 0) + 1;
     byType[m.type] = (byType[m.type] || 0) + 1;
@@ -49,20 +49,6 @@ function weekOverWeek(meetings) {
 /** Total points awarded across approved meetings in scope. */
 function pointsAwarded(meetings) {
   return meetings.reduce((sum, m) => sum + (m.status === MEETING_STATUS.APPROVED ? m.points?.awarded || 0 : 0), 0);
-}
-
-/** % of in-scope meetings flagged as a premium client. */
-function premiumRate(meetings) {
-  if (!meetings.length) return 0;
-  return Math.round((meetings.filter((m) => m.isPremiumClient).length / meetings.length) * 100);
-}
-
-/** Mean manager-given quality score, and how many meetings were rated. */
-function avgQuality(meetings) {
-  const rated = meetings.filter((m) => m.review?.qualityScore);
-  if (!rated.length) return { avg: 0, count: 0 };
-  const avg = rated.reduce((sum, m) => sum + m.review.qualityScore, 0) / rated.length;
-  return { avg: Math.round(avg * 10) / 10, count: rated.length };
 }
 
 /**
@@ -116,17 +102,17 @@ function recentActivity(meetings, n = 6) {
     .map((m) => ({ meetingId: m.meetingId, employeeName: m.employeeName, type: m.type, status: m.status, createdAt: m.createdAt }));
 }
 
-/** Count + points per region — only meaningful when an org spans more than one. */
-function regionBreakdown(meetings) {
-  const byRegion = new Map();
+/** Count + points per city — only meaningful when an org spans more than one. */
+function cityBreakdown(meetings) {
+  const byCity = new Map();
   for (const m of meetings) {
-    const region = m.region || 'UNASSIGNED';
-    if (!byRegion.has(region)) byRegion.set(region, { region, count: 0, points: 0 });
-    const row = byRegion.get(region);
+    const city = m.city || 'UNASSIGNED';
+    if (!byCity.has(city)) byCity.set(city, { city, count: 0, points: 0 });
+    const row = byCity.get(city);
     row.count += 1;
     if (m.status === MEETING_STATUS.APPROVED) row.points += m.points?.awarded || 0;
   }
-  return [...byRegion.values()].sort((a, b) => b.count - a.count);
+  return [...byCity.values()].sort((a, b) => b.count - a.count);
 }
 
 export const dashboardService = {
@@ -171,8 +157,6 @@ export const dashboardService = {
       trend: trend(meetings),
       weekOverWeek: weekOverWeek(meetings),
       pointsAwarded: pointsAwarded(meetings),
-      premiumRate: premiumRate(meetings),
-      quality: avgQuality(meetings),
       sla: slaBreakdown(meetings, approvalSlaHours),
       performance: performance.slice(0, 8),
       recentActivity: recentActivity(meetings),
@@ -187,8 +171,8 @@ export const dashboardService = {
 
     if (user.role === ROLES.ADMIN) {
       result.counts.pendingApprovals = [...team, ...managers].filter((u) => u.active === false).length;
-      const regions = regionBreakdown(meetings);
-      if (regions.length > 1) result.regions = regions;
+      const cities = cityBreakdown(meetings);
+      if (cities.length > 1) result.cities = cities;
     }
 
     return result;

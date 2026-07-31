@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import {
-  ROLES,
   MEETING_TYPES,
   MEETING_STATUS,
   INTEREST_LEVELS,
@@ -21,39 +20,28 @@ const strongPassword = z
   .regex(/[0-9]/, 'Password needs a number')
   .regex(/[^a-zA-Z0-9]/, 'Password needs a symbol');
 
-// Admin-only provisioning — managers only. Field users self-signup (see below);
-// there is no admin-create path for them anymore.
+// Provisioning — the actor's own role decides what's actually created
+// (userService.createUser): Admin creates a Manager (with a password they
+// set themselves, no forced change); Manager creates a User (password is
+// auto-generated server-side and never accepted from the client here).
+// The `role` a caller may create isn't client-supplied at all — it's derived
+// from the actor — so it's intentionally absent from this schema.
 export const createUserSchema = z.object({
   name: z.string().min(2).max(80),
   email: z.string().email(),
-  password: strongPassword,
-  role: z.literal(ROLES.MANAGER),
-  region: z.string().optional().nullable(),
+  password: strongPassword.optional(), // required for Admin->Manager only; ignored for Manager->User
+  city: z.string().optional().nullable(),
 });
 
-// Public self-signup — always a field user, activated via Cognito's emailed
-// verification code (see confirmSignupSchema), not admin approval.
-export const signupSchema = z.object({
-  name: z.string().min(2).max(80),
+export const completeNewPasswordSchema = z.object({
   email: z.string().email(),
-  password: strongPassword,
-  userId: z.string().min(1).max(40),
-});
-
-export const confirmSignupSchema = z.object({
-  name: z.string().min(2).max(80),
-  email: z.string().email(),
-  userId: z.string().min(1).max(40),
-  code: z.string().regex(/^\d{6}$/, 'Enter the 6-digit code from your email'),
-});
-
-export const resendSignupCodeSchema = z.object({
-  email: z.string().email(),
+  newPassword: strongPassword,
+  session: z.string().min(1),
 });
 
 export const updateUserSchema = z.object({
   name: z.string().min(2).max(80).optional(),
-  region: z.string().optional().nullable(),
+  city: z.string().optional().nullable(),
   active: z.boolean().optional(),
   managerId: z.string().optional().nullable(),
 });
@@ -65,18 +53,38 @@ export const presignSchema = z.object({
 const oneToOne = z.object({
   name: z.string().min(1),
   phone: z.string().optional().default(''),
-  address: z.string().optional().default(''),
+  city: z.string().optional().default(''),
 });
 
+const groupMember = z.object({
+  name: z.string().min(1),
+  phone: z.string().optional().default(''),
+  city: z.string().optional().default(''),
+});
+
+// Group meetings now capture named individual attendee details (2-6 people)
+// instead of a free-form headcount.
 const group = z.object({
   name: z.string().min(1),
-  attendees: z.coerce.number().int().min(0).default(0),
-  attendeeList: z.array(z.string()).optional().default([]),
+  attendeeList: z.array(groupMember).min(2).max(6),
+});
+
+// Direct Conversion — a crypto-staking referral conversion, logged like any
+// other meeting type. "stackingType" (BVS/ESP) is intentionally NOT accepted
+// here — it's always derived server-side from stakingVolume (meetingService)
+// so it can never be mismatched or spoofed by the client.
+const directConversion = z.object({
+  name: z.string().min(1),
+  businessCentre: z.string().min(1),
+  nexusMailId: z.string().email(),
+  phone: z.string().min(1),
+  stakingVolume: z.coerce.number().min(0),
+  screenshot: z.object({ key: z.string().min(1) }),
 });
 
 export const createMeetingSchema = z
   .object({
-    type: z.enum([MEETING_TYPES.ONE_TO_ONE, MEETING_TYPES.GROUP]),
+    type: z.enum([MEETING_TYPES.ONE_TO_ONE, MEETING_TYPES.GROUP, MEETING_TYPES.DIRECT_CONVERSION]),
     photo: z.object({ key: z.string().min(1), caption: z.string().optional().default('') }),
     location: z.object({
       lat: z.number().min(-90).max(90),
@@ -86,6 +94,7 @@ export const createMeetingSchema = z
     occurredAt: z.string().datetime().optional(),
     customer: oneToOne.optional(),
     group: group.optional(),
+    directConversion: directConversion.optional(),
     business: z
       .object({
         purpose: z.string().optional().default(''),
@@ -98,9 +107,14 @@ export const createMeetingSchema = z
       .optional()
       .default({}),
   })
-  .refine((d) => (d.type === MEETING_TYPES.ONE_TO_ONE ? !!d.customer : !!d.group), {
-    message: 'Provide customer details for one-to-one, or group details for group meetings',
-  });
+  .refine(
+    (d) => {
+      if (d.type === MEETING_TYPES.ONE_TO_ONE) return !!d.customer;
+      if (d.type === MEETING_TYPES.GROUP) return !!d.group;
+      return !!d.directConversion;
+    },
+    { message: 'Provide the details required for the selected meeting type' }
+  );
 
 export const decisionSchema = z.object({
   decision: z.enum(['APPROVE', 'REJECT', 'REQUEST_MODIFICATION']),

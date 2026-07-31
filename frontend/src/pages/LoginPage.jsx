@@ -1,20 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useSearchParams, Navigate } from 'react-router-dom';
-import {
-  login,
-  signup,
-  confirmSignup,
-  resendSignupCode,
-  clearError,
-  clearSignup,
-} from '../features/auth/authSlice.js';
+import { Navigate } from 'react-router-dom';
+import { login, completeNewPassword, clearError, clearChallenge } from '../features/auth/authSlice.js';
 import { usePwaInstall } from '../hooks/usePwaInstall.js';
 import { Button, Field, Input } from '../components/ui/index.jsx';
 import Icon from '../components/ui/Icon.jsx';
 import BullMark from '../components/brand/BullMark.jsx';
-
-const emptySignupForm = { name: '', email: '', userId: '', password: '' };
 
 // Mirrors the Cognito password policy the backend enforces, so the meter can
 // never tell a user they're done while the API would still reject them.
@@ -35,7 +26,7 @@ const STRENGTH = [
 
 const TRUST = [
   { icon: 'shield', label: 'Encrypted in transit' },
-  { icon: 'check', label: 'Email-verified accounts' },
+  { icon: 'users', label: 'Manager-provisioned access' },
   { icon: 'history', label: 'Full audit trail' },
 ];
 
@@ -132,84 +123,42 @@ function Alert({ tone, children }) {
 
 export default function LoginPage() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const {
-    token,
-    status,
-    error,
-    signupStatus,
-    signupMessage,
-    signupError,
-    pendingSignup,
-    confirmStatus,
-    confirmError,
-    resendStatus,
-  } = useSelector((s) => s.auth);
+  const { token, status, error, challenge, challengeStatus, challengeError } = useSelector((s) => s.auth);
   const { canInstall, promptInstall, isIOS, isStandalone } = usePwaInstall();
-  const [mode, setMode] = useState(searchParams.get('mode') === 'signup' ? 'signup' : 'login'); // 'login' | 'signup' | 'verify'
   const [form, setForm] = useState({ email: '', password: '' });
-  const [signupForm, setSignupForm] = useState(emptySignupForm);
-  const [code, setCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  useEffect(
-    () => () => {
-      dispatch(clearError());
-      dispatch(clearSignup());
-    },
-    [dispatch],
-  );
+  useEffect(() => () => { dispatch(clearError()); dispatch(clearChallenge()); }, [dispatch]);
 
   if (token) return <Navigate to="/" replace />;
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
-  const setSignup = (k) => (e) => setSignupForm({ ...signupForm, [k]: e.target.value });
 
   const submit = async (e) => {
     e.preventDefault();
-    const res = await dispatch(login(form));
-    if (res.meta.requestStatus === 'fulfilled') navigate('/');
+    await dispatch(login(form));
   };
 
-  const submitSignup = async (e) => {
+  const submitNewPassword = async (e) => {
     e.preventDefault();
-    const res = await dispatch(signup(signupForm));
-    if (res.meta.requestStatus === 'fulfilled') {
-      setMode('verify');
-      setCode('');
-    }
+    if (newPassword !== confirmPassword) return;
+    await dispatch(completeNewPassword({ email: challenge.email, newPassword, session: challenge.session }));
   };
 
-  const submitConfirm = async (e) => {
-    e.preventDefault();
-    const res = await dispatch(confirmSignup({ ...pendingSignup, code }));
-    if (res.meta.requestStatus === 'fulfilled') {
-      setForm({ email: pendingSignup?.email || '', password: '' });
-      setSignupForm(emptySignupForm);
-      setCode('');
-      setMode('login');
-    }
-  };
-
-  const resendCode = () => {
-    if (pendingSignup?.email) dispatch(resendSignupCode({ email: pendingSignup.email }));
-  };
-
-  const switchMode = (m) => {
-    setMode(m);
+  const backToSignIn = () => {
+    dispatch(clearChallenge());
     dispatch(clearError());
-    dispatch(clearSignup());
+    setNewPassword('');
+    setConfirmPassword('');
   };
 
-  const heading =
-    mode === 'login' ? 'Welcome back' : mode === 'verify' ? 'Verify your email' : 'Create your account';
-  const subheading =
-    mode === 'login'
-      ? 'Sign in to your associate workspace.'
-      : mode === 'verify'
-        ? null
-        : 'Register as an associate — verify your email to activate access.';
+  const passwordsMismatch = confirmPassword.length > 0 && newPassword !== confirmPassword;
+  const heading = challenge ? 'Set your password' : 'Welcome back';
+  const subheading = challenge
+    ? "You're signing in for the first time — choose a password only you know."
+    : 'Sign in to your associate workspace.';
 
   return (
     <div className="min-h-screen grid grid-cols-[1.05fr_0.95fr] max-[900px]:grid-cols-1 bg-bg relative overflow-hidden">
@@ -315,55 +264,53 @@ export default function LoginPage() {
               />
 
               <div className="relative">
-                {mode !== 'verify' && (
-                  <div
-                    role="tablist"
-                    aria-label="Authentication mode"
-                    className="grid grid-cols-2 gap-1 p-1 mb-7 bg-surface-2/80 border border-border/70 rounded-[11px]"
-                  >
-                    {[
-                      { key: 'login', label: 'Sign in' },
-                      { key: 'signup', label: 'Create account' },
-                    ].map((t) => (
-                      <button
-                        key={t.key}
-                        role="tab"
-                        type="button"
-                        aria-selected={mode === t.key}
-                        onClick={() => switchMode(t.key)}
-                        /* Selected state is a gold *tint*, not a gold slab — the
-                       submit button must stay the only saturated gold mass on
-                       the card, or the two compete for primary attention. */
-                        className={`py-2 rounded-[8px] text-[13px] font-bold cursor-pointer transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2 ${
-                          mode === t.key
-                            ? 'bg-primary/12 text-primary border border-primary/40'
-                            : 'text-muted border border-transparent hover:text-white'
-                        }`}
-                      >
-                        {t.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
                 <h2 className="text-[26px] font-bold font-heading text-white tracking-tight">{heading}</h2>
-                {subheading && <p className="text-muted text-sm mt-1.5 mb-6">{subheading}</p>}
-                {mode === 'verify' && (
-                  <p className="text-muted text-sm mt-1.5 mb-6 leading-relaxed">
-                    We've sent a 6-digit code to <b className="text-white">{pendingSignup?.email}</b> — enter
-                    it below to activate your account.
-                  </p>
-                )}
+                <p className="text-muted text-sm mt-1.5 mb-6">{subheading}</p>
 
-                {mode === 'login' && error && <Alert tone="danger">{error}</Alert>}
-                {mode === 'signup' && signupError && <Alert tone="danger">{signupError}</Alert>}
-                {mode === 'verify' && confirmError && <Alert tone="danger">{confirmError}</Alert>}
-                {mode === 'login' && signupStatus === 'succeeded' && signupMessage && (
-                  <Alert tone="success">{signupMessage}</Alert>
-                )}
+                {!challenge && error && <Alert tone="danger">{error}</Alert>}
+                {challenge && challengeError && <Alert tone="danger">{challengeError}</Alert>}
 
-                {mode === 'login' ? (
-                  <form onSubmit={submit} noValidate={false}>
+                {challenge ? (
+                  <form onSubmit={submitNewPassword}>
+                    <Field label="New password">
+                      <PasswordInput
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        show={showPassword}
+                        onToggleShow={() => setShowPassword(!showPassword)}
+                        autoComplete="new-password"
+                        minLength={8}
+                      />
+                      <PasswordMeter value={newPassword} />
+                    </Field>
+                    <Field label="Confirm password" error={passwordsMismatch ? 'Passwords do not match' : undefined}>
+                      <PasswordInput
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        show={showPassword}
+                        onToggleShow={() => setShowPassword(!showPassword)}
+                        autoComplete="new-password"
+                        minLength={8}
+                      />
+                    </Field>
+                    <Button
+                      type="submit"
+                      className="w-full mt-2 py-3"
+                      loading={challengeStatus === 'loading'}
+                      disabled={passwordsMismatch || !newPassword}
+                    >
+                      Set password & continue <Icon name="arrowRight" size={16} />
+                    </Button>
+                    <button
+                      type="button"
+                      onClick={backToSignIn}
+                      className="mt-4 text-xs text-muted hover:text-white cursor-pointer transition-colors duration-200 mx-auto block"
+                    >
+                      Back to sign in
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={submit}>
                     <Field label="Email">
                       <div className="relative flex items-center">
                         <span className="absolute left-3 text-muted/60 pointer-events-none flex items-center">
@@ -391,110 +338,6 @@ export default function LoginPage() {
                     </Field>
                     <Button type="submit" className="w-full mt-2 py-3" loading={status === 'loading'}>
                       Sign in <Icon name="arrowRight" size={16} />
-                    </Button>
-                  </form>
-                ) : mode === 'verify' ? (
-                  <form onSubmit={submitConfirm}>
-                    <Field label="Verification code">
-                      <Input
-                        value={code}
-                        onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        placeholder="123456"
-                        inputMode="numeric"
-                        autoComplete="one-time-code"
-                        maxLength={6}
-                        required
-                        autoFocus
-                        className="text-center tracking-[0.55em] text-[22px] py-3.5 font-bold font-heading"
-                      />
-                    </Field>
-                    <Button
-                      type="submit"
-                      className="w-full mt-2 py-3"
-                      loading={confirmStatus === 'loading'}
-                      disabled={code.length !== 6}
-                    >
-                      Verify & continue
-                    </Button>
-                    <div className="mt-5 flex items-center justify-between text-xs">
-                      <button
-                        type="button"
-                        onClick={resendCode}
-                        disabled={resendStatus === 'loading'}
-                        className="text-primary font-semibold hover:underline disabled:opacity-60 cursor-pointer"
-                      >
-                        {resendStatus === 'loading' ? 'Sending…' : 'Resend code'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => switchMode('signup')}
-                        className="text-muted hover:text-white cursor-pointer transition-colors duration-200"
-                      >
-                        Use a different email
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <form onSubmit={submitSignup}>
-                    <Field label="Full name">
-                      <div className="relative flex items-center">
-                        <span className="absolute left-3 text-muted/60 pointer-events-none flex items-center">
-                          <Icon name="user" size={16} />
-                        </span>
-                        <Input
-                          value={signupForm.name}
-                          onChange={setSignup('name')}
-                          placeholder="Your name"
-                          autoComplete="name"
-                          required
-                          className="pl-9"
-                        />
-                      </div>
-                    </Field>
-                    <Field label="Work email">
-                      <div className="relative flex items-center">
-                        <span className="absolute left-3 text-muted/60 pointer-events-none flex items-center">
-                          <Icon name="mail" size={16} />
-                        </span>
-                        <Input
-                          type="email"
-                          value={signupForm.email}
-                          onChange={setSignup('email')}
-                          placeholder="you@company.com"
-                          autoComplete="email"
-                          required
-                          className="pl-9"
-                        />
-                      </div>
-                    </Field>
-                    <Field label="Associate ID">
-                      <div className="relative flex items-center">
-                        <span className="absolute left-3 text-muted/60 pointer-events-none flex items-center">
-                          <Icon name="users" size={16} />
-                        </span>
-                        <Input
-                          value={signupForm.userId}
-                          onChange={setSignup('userId')}
-                          placeholder="Your associate / employee ID"
-                          autoComplete="off"
-                          required
-                          className="pl-9"
-                        />
-                      </div>
-                    </Field>
-                    <Field label="Password">
-                      <PasswordInput
-                        value={signupForm.password}
-                        onChange={setSignup('password')}
-                        show={showPassword}
-                        onToggleShow={() => setShowPassword(!showPassword)}
-                        autoComplete="new-password"
-                        minLength={8}
-                      />
-                      <PasswordMeter value={signupForm.password} />
-                    </Field>
-                    <Button type="submit" className="w-full mt-2 py-3" loading={signupStatus === 'loading'}>
-                      Create account <Icon name="arrowRight" size={16} />
                     </Button>
                   </form>
                 )}
@@ -535,7 +378,7 @@ export default function LoginPage() {
           </div>
 
           <p className="mt-6 text-center text-[11.5px] text-muted/70 leading-relaxed">
-            Accounts are provisioned for organisation associates.
+            Accounts are provisioned by your admin or manager.
           </p>
         </div>
       </main>

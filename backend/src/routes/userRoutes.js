@@ -9,7 +9,7 @@ import { ROLES } from '../config/constants.js';
 const router = Router();
 router.use(authenticate);
 
-router.post('/', authorize(ROLES.ADMIN), validate(createUserSchema), userController.create);
+router.post('/', authorize(ROLES.ADMIN, ROLES.MANAGER), validate(createUserSchema), userController.create);
 router.get('/', authorize(ROLES.ADMIN, ROLES.MANAGER), userController.list);
 router.get('/managers', authorize(ROLES.ADMIN), userController.managers);
 router.patch('/:id', authorize(ROLES.ADMIN), validate(updateUserSchema), userController.update);

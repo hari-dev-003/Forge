@@ -14,6 +14,7 @@ function ConfigSkeleton() {
         <div className={GRID_2}>
           <Skeleton className="h-16" />
           <Skeleton className="h-16" />
+          <Skeleton className="h-16" />
         </div>
       </Card>
       <Card title="Bonuses & penalties">
@@ -79,6 +80,7 @@ export default function PointsConfigPage() {
               <div className={GRID_2}>
                 <Field label="One-to-one meeting"><Input type="number" value={draft.base.ONE_TO_ONE} onChange={num('base.ONE_TO_ONE')} /></Field>
                 <Field label="Group meeting"><Input type="number" value={draft.base.GROUP} onChange={num('base.GROUP')} /></Field>
+                <Field label="Direct conversion"><Input type="number" value={draft.base.DIRECT_CONVERSION} onChange={num('base.DIRECT_CONVERSION')} /></Field>
               </div>
             </Card>
           </Reveal>

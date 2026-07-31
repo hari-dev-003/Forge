@@ -200,7 +200,7 @@
   }
 }
 
-/* ─── Shared motion/glow primitives — landing page + app-wide polish ─── */
+/* ─── Shared motion/glow primitives — app-wide polish ─── */
 
 /* Scroll-in reveal (paired with the <Reveal> component's IntersectionObserver
    toggling data-visible — CSS-only animation, no layout dependency on JS). */
@@ -214,37 +214,6 @@
   transform: translateY(0);
 }
 
-/* Infinite horizontal scroll strip (logo/stat marquee). Duplicate the track
-   content once in markup and this scrolls it seamlessly. */
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-.marquee-track {
-  animation: marquee 28s linear infinite;
-}
-.marquee-track:hover {
-  animation-play-state: paused;
-}
-
-/* Slow ambient drift for background glow blobs (landing hero). */
-@keyframes blob-drift {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(4%, -3%) scale(1.05); }
-}
-.blob-drift {
-  animation: blob-drift 14s ease-in-out infinite;
-}
-
-/* Pulsing glow ring, used sparingly for a single "live/active" accent. */
-@keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(238, 179, 28, 0.35); }
-  50% { box-shadow: 0 0 0 8px rgba(238, 179, 28, 0); }
-}
-.glow-pulse {
-  animation: glow-pulse 2.4s ease-out infinite;
-}
-
 /* Stronger hover-glow border, opt-in via className on Card/StatCard. */
 .glow-card {
   transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
@@ -255,41 +224,13 @@
   transform: translateY(-1px);
 }
 
-/* Cursor-tracked glow paired with the pointer-tilt hover on landing feature/
-   pricing cards (tilt itself is GSAP-driven, this is just the highlight). */
-.tilt-card {
-  transform-style: preserve-3d;
-  will-change: transform;
-}
-.tilt-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(circle at var(--glow-x, 50%) var(--glow-y, 50%), rgba(238, 179, 28, 0.12), transparent 60%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-.tilt-card:hover::before {
-  opacity: 1;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .marquee-track,
-  .blob-drift,
-  .glow-pulse {
-    animation: none;
-  }
   .glow-card:hover {
     transform: none;
   }
   .reveal {
     opacity: 1;
     transform: none;
-  }
-  .tilt-card:hover::before {
-    opacity: 0;
   }
 }
 

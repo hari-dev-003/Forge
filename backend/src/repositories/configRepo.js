@@ -14,9 +14,21 @@ export const configRepo = {
   async getPointsRules() {
     const store = getStore();
     const item = await store.getItem(K.configPk(), K.configSk(POINTS_RULES));
-    // Merge over the defaults so newly-added rule fields (e.g. approvalSlaHours)
-    // apply even to orgs whose stored config predates that field.
-    return item ? { ...DEFAULT_POINTS_RULES, ...strip(item).rules } : DEFAULT_POINTS_RULES;
+    if (!item) return DEFAULT_POINTS_RULES;
+    // Merge over the defaults so newly-added rule fields (e.g. approvalSlaHours,
+    // or a new base.DIRECT_CONVERSION) apply even to orgs whose stored config
+    // predates that field. A shallow merge isn't enough — nested objects like
+    // `base`/`bonuses`/`penalties` must be merged too, or an old stored `base`
+    // (missing a newly-added type) would wholesale replace the default and
+    // silently drop it.
+    const stored = strip(item).rules;
+    return {
+      ...DEFAULT_POINTS_RULES,
+      ...stored,
+      base: { ...DEFAULT_POINTS_RULES.base, ...stored.base },
+      bonuses: { ...DEFAULT_POINTS_RULES.bonuses, ...stored.bonuses },
+      penalties: { ...DEFAULT_POINTS_RULES.penalties, ...stored.penalties },
+    };
   },
 
   async setPointsRules(rules) {

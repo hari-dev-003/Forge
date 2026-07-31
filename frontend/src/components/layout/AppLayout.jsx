@@ -98,7 +98,7 @@ export default function AppLayout() {
             </div>
             <div className="flex flex-col leading-tight max-[560px]:hidden">
               <span className="text-sm font-semibold text-white">{user?.name}</span>
-              <span className="text-xs text-muted">{user?.region || user?.email}</span>
+              <span className="text-xs text-muted">{user?.city || user?.email}</span>
             </div>
           </div>
           <Button variant="ghost" size="sm" onClick={handleLogout}>

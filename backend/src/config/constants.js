@@ -9,7 +9,13 @@ export const ROLES = Object.freeze({
 export const MEETING_TYPES = Object.freeze({
   ONE_TO_ONE: 'ONE_TO_ONE',
   GROUP: 'GROUP',
+  DIRECT_CONVERSION: 'DIRECT_CONVERSION',
 });
+
+// Direct Conversion's "stacking type" is derived from staking volume, never
+// client-supplied: under this threshold is BVS, at/above it is ESP.
+export const STAKING_VOLUME_THRESHOLD = 100000;
+export const STAKING_TYPES = Object.freeze({ BVS: 'BVS', ESP: 'ESP' });
 
 export const MEETING_STATUS = Object.freeze({
   PENDING: 'PENDING',
@@ -33,7 +39,7 @@ export const LEADERBOARD_SCOPES = Object.freeze({
 // Default, admin-editable points rules (see config/POINTS_RULES item).
 export const DEFAULT_POINTS_RULES = Object.freeze({
   version: 'v1',
-  base: { ONE_TO_ONE: 10, GROUP: 25 },
+  base: { ONE_TO_ONE: 10, GROUP: 25, DIRECT_CONVERSION: 15 },
   bonuses: { premiumClient: 20, earlySubmission: 5 },
   penalties: { lateSubmission: -5 },
   rejected: 0,

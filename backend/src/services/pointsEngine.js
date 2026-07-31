@@ -10,10 +10,13 @@ export function computePoints(meeting, rules) {
 
   // Base points by meeting type.
   const base = rules.base?.[meeting.type] ?? 0;
-  breakdown.push({
-    label: meeting.type === MEETING_TYPES.GROUP ? 'Group meeting' : 'One-to-one meeting',
-    points: base,
-  });
+  const label =
+    meeting.type === MEETING_TYPES.GROUP
+      ? 'Group meeting'
+      : meeting.type === MEETING_TYPES.DIRECT_CONVERSION
+        ? 'Direct conversion'
+        : 'One-to-one meeting';
+  breakdown.push({ label, points: base });
 
   // Premium client bonus.
   if (meeting.isPremiumClient && rules.bonuses?.premiumClient) {
