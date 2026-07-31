@@ -37,7 +37,7 @@ export function Card({ title, actions, children, className = '' }) {
     <section className={`glow-card bg-surface/80 backdrop-blur-md border border-border rounded-[14px] shadow-card mb-5 ${className}`}>
       {(title || actions) && (
         <header className="flex items-center justify-between px-5 py-4 border-b border-border">
-          {title && <h3 className="text-[15px] font-semibold text-white tracking-wide">{title}</h3>}
+          {title && <h3 className="text-[15px] font-medium text-white tracking-[-0.005em]">{title}</h3>}
           {actions}
         </header>
       )}
@@ -59,8 +59,8 @@ export function StatCard({ label, value, sub, accent = 'indigo' }) {
       className={`glow-card relative overflow-hidden bg-surface/80 backdrop-blur-md border border-border rounded-[14px] p-4.5 flex flex-col gap-1 shadow-card
         before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 ${STAT_ACCENT[accent] || STAT_ACCENT.indigo}`}
     >
-      <span className="text-xs text-muted font-semibold uppercase tracking-wider">{label}</span>
-      <span className="text-[32px] font-bold tracking-tight leading-none text-white font-heading">{value}</span>
+      <span className="text-xs text-muted type-label">{label}</span>
+      <span className="text-[32px] font-semibold tracking-[-0.03em] leading-none text-white font-heading tabular">{value}</span>
       {sub != null && <span className="text-xs text-muted">{sub}</span>}
     </div>
   );
@@ -76,7 +76,7 @@ const BADGE_STATUS = {
 export function Badge({ status, children }) {
   const tone = (status && BADGE_STATUS[status]) || 'bg-surface-2 text-muted border border-border';
   return (
-    <span className={`inline-flex items-center px-2.5 py-[3px] rounded-full text-xs font-semibold ${tone}`}>
+    <span className={`inline-flex items-center px-2.5 py-[3px] rounded-full text-xs font-medium ${tone}`}>
       {children || (status ? STATUS_LABEL[status] || status : '')}
     </span>
   );
@@ -85,7 +85,7 @@ export function Badge({ status, children }) {
 export function Field({ label, error, children, hint }) {
   return (
     <label className="flex flex-col gap-1.5 mb-4">
-      {label && <span className="text-[13px] font-semibold text-muted tracking-wide">{label}</span>}
+      {label && <span className="text-[13px] font-medium text-muted">{label}</span>}
       {children}
       {hint && <span className="text-xs text-muted">{hint}</span>}
       {error && <span className="text-xs text-danger">{error}</span>}
@@ -129,8 +129,8 @@ export function PageHeader({ eyebrow, title, subtitle, actions }) {
   return (
     <div className="mb-7 flex justify-between items-start gap-4 flex-wrap">
       <div>
-        {eyebrow && <span className="text-primary text-xs font-bold uppercase tracking-widest">{eyebrow}</span>}
-        <h1 className="text-[32px] leading-tight font-bold font-heading tracking-tight text-white mt-1">{title}</h1>
+        {eyebrow && <span className="text-primary text-xs type-label">{eyebrow}</span>}
+        <h1 className="text-[32px] leading-tight font-semibold font-heading tracking-[-0.03em] text-white mt-1">{title}</h1>
         {subtitle && <p className="text-muted text-sm mt-1.5">{subtitle}</p>}
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}

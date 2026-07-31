@@ -17,13 +17,36 @@
 }
 
 /* ─── Forge design tokens — dark-luxury/amber premium-fintech palette ───
-   Single-family typeface: DM Sans (variable, weights 100-1000) used for both
-   headings and body — distinguished by weight per place, not by family,
-   since DM Sans natively covers the full Tailwind weight scale (no remap
-   or clamping needed at any utility, unlike the previous display/body pair). */
+   Typeface: Clash Grotesk (Fontshare), one family for everything.
+   A single grotesque keeps a dense dashboard coherent; hierarchy is carried by
+   WEIGHT + SIZE + TRACKING rather than by switching families.
+
+   The scale — four weights, each with one job:
+
+     700 Bold       the single largest statement on a page (the login hero).
+                    Nothing else earns it, or it stops meaning "loudest".
+     600 Semibold   display: page titles, stat values, the Forge wordmark.
+     500 Medium     card titles, table headers, emphasis inside body text,
+                    buttons, and uppercase labels.
+     400 Regular    body copy, inputs, meta and helper text.
+
+   200/300 are not loaded on purpose. At the 11-13px this UI leans on, light
+   weights on a dark ground lose stroke and fall below comfortable contrast —
+   dark backgrounds thin type optically, they don't thicken it.
+
+   Tracking tightens as size grows (grotesques open up when scaled) and opens
+   up for small uppercase labels, which otherwise set too tight to read. */
 @theme {
-  --font-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
-  --font-heading: 'DM Sans', sans-serif;
+  --font-sans: 'Clash Grotesk', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Clash Grotesk', system-ui, sans-serif;
+
+  /* Clash Grotesk tops out at 700. Tailwind maps extrabold->800 and
+     black->900, and a browser asked for a weight a family doesn't have
+     SYNTHESISES it — algorithmically smearing the outline. That faux bold is
+     especially ugly on dark, where strokes already bloom. Clamping both to the
+     real 700 means every existing `font-extrabold` renders as designed type. */
+  --font-weight-extrabold: 700;
+  --font-weight-black: 700;
 
   --color-bg: #0a0a0c;
   --color-surface: #25262f;
@@ -75,27 +98,64 @@
     margin: 0;
     background-color: var(--section-bg);
     color: var(--color-ink);
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-sans);
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
     overflow-x: hidden;
   }
 
+  /* Headings sit at 600, not 700: 700 is reserved for the one hero statement
+     per page, so a page full of h1-h4 doesn't flatten back into "everything is
+     equally loud" — which is what the old all-bold scale did. */
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-heading);
     color: #ffffff;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: -0.02em;
   }
 
+  /* Optical tracking: a grotesque set large reads loose, set small reads
+     tight. Compensate at both ends rather than shipping one flat value. */
+  h1 { letter-spacing: -0.03em; }
+  h2 { letter-spacing: -0.025em; }
+
   p {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-sans);
     font-weight: 400;
   }
 
+  /* Figures in tables, stat cards and the leaderboard must line up column to
+     column; proportional digits jitter as values change. */
+  table, .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ─── Type roles ───
+   Named classes for the two patterns repeated most across the app, so the
+   weight/tracking pairing lives in one place instead of being re-typed (and
+   drifting) at every call site. */
+@layer components {
+  /* Eyebrows, table headers, badges: small uppercase needs positive tracking
+     or the caps crowd into an unreadable block. */
+  .type-label {
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* The Forge wordmark. */
+  .type-wordmark {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer base {
   /* Custom scrollbars */
   ::-webkit-scrollbar {
     width: 8px;

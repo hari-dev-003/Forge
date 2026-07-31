@@ -7,10 +7,17 @@
     <title>Forge</title>
     <meta name="description" content="Log verified client meetings, earn points on approval, and climb the leaderboard." />
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+    <!-- Typeface: Clash Grotesk (Fontshare / Indian Type Foundry).
+         Only 400/500/600/700 are requested — those are the four weights the
+         type scale uses. 200/300 are deliberately excluded: at the 11-13px
+         sizes this UI leans on, ExtraLight and Light lose too much stroke
+         against a dark background to stay legible, so shipping them would only
+         add payload and invite misuse. -->
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+    <link
+      href="https://api.fontshare.com/v2/css?f[]=clash-grotesk@400,500,600,700&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- PWA -->
     <link rel="manifest" href="/manifest.webmanifest" />

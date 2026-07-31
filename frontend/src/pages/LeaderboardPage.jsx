@@ -12,7 +12,7 @@ const SCOPES = [
 ];
 
 const RANK_TONE = [
-  'bg-primary/20 text-primary border border-primary/40 font-extrabold',
+  'bg-primary/20 text-primary border border-primary/40 font-bold',
   'bg-white/10 text-white border border-white/20 font-bold',
   'bg-bronze/20 text-bronze border border-bronze/40 font-bold',
 ];

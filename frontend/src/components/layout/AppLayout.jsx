@@ -58,8 +58,8 @@ export default function AppLayout() {
         <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-primary/4 blur-3xl pointer-events-none" />
         <div className="relative flex items-center gap-3 px-5 pt-6 pb-6 border-b border-border/40">
           <LogoMark className="w-9 h-9 object-contain shrink-0" />
-          <span className="text-lg font-semibold text-white font-heading tracking-tight">
-            For<b className="text-primary font-extrabold">ge</b>
+          <span className="text-lg text-white font-heading type-wordmark">
+            FOR<b className="text-primary font-semibold">GE</b>
           </span>
         </div>
 

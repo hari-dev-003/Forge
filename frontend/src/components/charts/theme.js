@@ -25,9 +25,18 @@ export const ReactEChartsCore = ReactEChartsCoreImport?.default ?? ReactEChartsC
 // positive/negative categories, not arbitrary series filler.
 export const CHART_COLORS = ['#eeb31c', '#9b9db1', '#cb960e', '#80db66', '#ef4444'];
 
+// Charts render outside the DOM's cascade (ECharts paints to canvas), so they
+// can't inherit --font-sans and have to be told the family explicitly. Read it
+// from the same CSS token the rest of the UI uses so the two can't drift apart.
+export const CHART_FONT =
+  typeof window !== 'undefined'
+    ? getComputedStyle(document.documentElement).getPropertyValue('--font-sans').trim() ||
+      'Clash Grotesk, system-ui, sans-serif'
+    : 'Clash Grotesk, system-ui, sans-serif';
+
 export const axisCommon = {
   axisLine: { lineStyle: { color: 'rgba(204,211,217,0.2)' } },
-  axisLabel: { color: '#9b9db1', fontFamily: 'DM Sans, sans-serif', fontSize: 11 },
+  axisLabel: { color: '#9b9db1', fontFamily: CHART_FONT, fontSize: 11 },
   splitLine: { lineStyle: { color: 'rgba(204,211,217,0.06)' } },
   axisTick: { show: false },
 };
@@ -36,5 +45,5 @@ export const tooltipCommon = {
   backgroundColor: '#25262f',
   borderColor: 'rgba(204,211,217,0.2)',
   borderWidth: 1,
-  textStyle: { color: '#ffffff', fontFamily: 'DM Sans, sans-serif', fontSize: 12 },
+  textStyle: { color: '#ffffff', fontFamily: CHART_FONT, fontSize: 12 },
 };

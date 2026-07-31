@@ -194,14 +194,16 @@ export default function LoginPage() {
 
         <div className="relative flex items-center gap-2.5">
           <LogoMark className="w-9 h-9 object-contain shrink-0" />
-          <span className="text-lg font-bold text-white font-heading tracking-tight">Forge</span>
+          <span className="text-lg text-white font-heading type-wordmark">
+            FOR<b className="text-primary font-semibold">GE</b>
+          </span>
         </div>
 
         <div className="relative max-w-125">
           <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-soft border border-primary/30 text-primary text-[11px] font-bold uppercase tracking-widest mb-6">
             <Icon name="trendingUp" size={12} /> Associate platform
           </span>
-          <h1 className="text-[40px] leading-[1.08] font-extrabold font-heading text-white tracking-tight">
+          <h1 className="text-[40px] leading-[1.08] font-bold font-heading text-white tracking-[-0.03em]">
             Run with the bulls.
             <br />
             <span className="text-primary">Earn your position.</span>
@@ -241,7 +243,9 @@ export default function LoginPage() {
               repeat the watermark sitting behind the card. */}
           <div className="hidden max-[900px]:flex items-center justify-center gap-2.5 mb-7">
             <LogoMark className="w-9 h-9 object-contain shrink-0" />
-            <span className="text-lg font-bold text-white font-heading tracking-tight">Forge</span>
+            <span className="text-lg text-white font-heading type-wordmark">
+            FOR<b className="text-primary font-semibold">GE</b>
+          </span>
           </div>
 
           {/* Gradient hairline ring: a 1px gradient-filled wrapper reads as a
