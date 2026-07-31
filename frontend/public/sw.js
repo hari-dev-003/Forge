@@ -8,7 +8,7 @@
  *
  * Bump CACHE to invalidate everything on a new deploy.
  */
-const CACHE = 'forge-cache-v1';
+const CACHE = 'forge-cache-v2';
 
 // Stable, non-hashed assets worth precaching. Hashed build assets are cached
 // lazily on first fetch, so they don't need to be listed here.
@@ -16,10 +16,11 @@ const PRECACHE = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
-  '/favicon.svg',
+  '/icons/favicon-32.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/apple-touch-icon.png',
+  '/brand/forge-mark.png',
 ];
 
 self.addEventListener('install', (event) => {

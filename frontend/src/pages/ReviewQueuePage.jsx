@@ -51,7 +51,7 @@ export default function ReviewQueuePage() {
       ) : (
         <Reveal className="grid gap-3.5">
           {queue.map((m) => (
-            <MeetingCard key={m.meetingId} meeting={m} showEmployee>
+            <MeetingCard key={m.meetingId} meeting={m} showExecutive>
               {rejectFor === m.meetingId ? (
                 <div className="flex gap-2 w-full flex-wrap">
                   <Input

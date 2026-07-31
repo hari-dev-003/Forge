@@ -21,6 +21,11 @@ export const userController = {
     const user = await userService.updateUser(req.user, req.params.id, req.body);
     ok(res, { user });
   }),
+
+  remove: asyncHandler(async (req, res) => {
+    const result = await userService.deleteUser(req.user, req.params.id);
+    ok(res, { deleted: true, ...result });
+  }),
 };
 
 export default userController;

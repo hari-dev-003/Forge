@@ -151,6 +151,72 @@ export function Spinner({ label }) {
   );
 }
 
+/**
+ * Page selector for a client-side paginated list.
+ *
+ * Renders nothing for a single page. Long ranges collapse to
+ * `1 … 4 5 6 … 20` so the control keeps a fixed width no matter how many
+ * pages there are.
+ */
+export function Pagination({ page, pageCount, onChange, className = '' }) {
+  if (pageCount <= 1) return null;
+
+  const pages = [];
+  for (let p = 1; p <= pageCount; p++) {
+    const isEdge = p === 1 || p === pageCount;
+    const isNear = Math.abs(p - page) <= 1;
+    if (isEdge || isNear) pages.push(p);
+    else if (pages[pages.length - 1] !== '…') pages.push('…');
+  }
+
+  const btn =
+    'min-w-9 h-9 px-2.5 rounded-[9px] text-[13px] font-semibold border transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed';
+
+  return (
+    <nav aria-label="Pagination" className={`flex items-center justify-center gap-1.5 ${className}`}>
+      <button
+        type="button"
+        className={`${btn} bg-surface-2 border-border text-muted hover:text-white`}
+        onClick={() => onChange(page - 1)}
+        disabled={page <= 1}
+      >
+        Prev
+      </button>
+
+      {pages.map((p, i) =>
+        p === '…' ? (
+          <span key={`gap-${i}`} className="px-1 text-muted select-none">
+            …
+          </span>
+        ) : (
+          <button
+            key={p}
+            type="button"
+            aria-current={p === page ? 'page' : undefined}
+            className={`${btn} ${
+              p === page
+                ? 'bg-primary border-primary text-on-primary'
+                : 'bg-surface-2 border-border text-muted hover:text-white'
+            }`}
+            onClick={() => onChange(p)}
+          >
+            {p}
+          </button>
+        )
+      )}
+
+      <button
+        type="button"
+        className={`${btn} bg-surface-2 border-border text-muted hover:text-white`}
+        onClick={() => onChange(page + 1)}
+        disabled={page >= pageCount}
+      >
+        Next
+      </button>
+    </nav>
+  );
+}
+
 export function EmptyState({ title, hint, icon }) {
   return (
     <div className="text-center p-12 text-muted">

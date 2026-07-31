@@ -13,20 +13,49 @@ const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString(undefined, { ye
 
 const stripHtml = (html = '') => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
-export default function AnnouncementCard({ announcement: a }) {
-  const image = a.type === ANNOUNCEMENT_TYPES.IMAGE ? a.attachments?.[0] : null;
-  const firstDoc = a.type === ANNOUNCEMENT_TYPES.DOCUMENT ? a.attachments?.[0] : null;
-  const summary = stripHtml(a.description).slice(0, 140);
+/**
+ * @param {object}  announcement
+ * @param {boolean} [featured]  Full-width treatment used for pinned
+ *   announcements at the top of the feed: the card spans the whole row with
+ *   the cover image beside the text instead of stacked above it.
+ */
+export default function AnnouncementCard({ announcement: a, featured = false }) {
+  // Key off the attachment's content type rather than the announcement's
+  // declared `type` so a photo attached to a TEXT/DOCUMENT announcement still
+  // shows as the cover.
+  const first = a.attachments?.[0];
+  const image = first?.url && first.contentType?.startsWith('image/') ? first : null;
+  const firstDoc = a.type === ANNOUNCEMENT_TYPES.DOCUMENT ? first : null;
+  const summary = stripHtml(a.description).slice(0, featured ? 260 : 140);
+  const clamped = summary.length === (featured ? 260 : 140);
 
   return (
-    <article className="glow-card flex flex-col bg-surface/80 backdrop-blur-md border border-border rounded-[14px] overflow-hidden shadow-card">
-      {image?.url && (
-        <img src={assetUrl(image.url)} alt="" className="w-full h-36 object-cover" />
+    <article
+      className={`glow-card bg-surface/80 backdrop-blur-md border rounded-[14px] overflow-hidden shadow-card ${
+        featured
+          ? 'flex w-full border-primary/35 max-[720px]:flex-col'
+          : 'flex flex-col border-border'
+      }`}
+    >
+      {image && (
+        <img
+          src={assetUrl(image.url)}
+          alt=""
+          className={
+            featured
+              ? 'w-64 shrink-0 self-stretch object-cover max-[720px]:w-full max-[720px]:h-40'
+              : 'w-full h-36 object-cover'
+          }
+        />
       )}
-      <div className="p-4 flex-1 flex flex-col">
+      <div className="p-4 flex-1 flex flex-col min-w-0">
         <div className="flex items-center justify-between gap-2 mb-2">
           <div className="flex items-center gap-1.5">
-            {a.isPinned && <Icon name="pin" size={12} className="text-primary" />}
+            {a.isPinned && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md bg-primary text-on-primary">
+                <Icon name="pin" size={11} /> Pinned
+              </span>
+            )}
             <span className="text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md bg-primary-soft text-primary">
               {ANNOUNCEMENT_CATEGORY_LABEL[a.category] || a.category}
             </span>
@@ -38,9 +67,9 @@ export default function AnnouncementCard({ announcement: a }) {
           )}
         </div>
 
-        <h3 className="text-base font-semibold text-white leading-snug">{a.title}</h3>
+        <h3 className={`font-semibold text-white leading-snug ${featured ? 'text-lg' : 'text-base'}`}>{a.title}</h3>
         <p className="text-xs text-muted mt-1">{fmtDate(a.publishDate)}</p>
-        {summary && <p className="text-[13px] text-muted mt-2 flex-1">{summary}{summary.length === 140 ? '…' : ''}</p>}
+        {summary && <p className="text-[13px] text-muted mt-2 flex-1">{summary}{clamped ? '…' : ''}</p>}
 
         {firstDoc && (
           <div className="flex items-center gap-1.5 mt-2.5 text-xs text-muted">

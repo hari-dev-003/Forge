@@ -17,17 +17,8 @@ function ConfigSkeleton() {
           <Skeleton className="h-16" />
         </div>
       </Card>
-      <Card title="Bonuses & penalties">
+      <Card title="Bonuses">
         <div className={GRID_2}>
-          <Skeleton className="h-16" />
-          <Skeleton className="h-16" />
-          <Skeleton className="h-16" />
-        </div>
-      </Card>
-      <Card title="Thresholds">
-        <div className={GRID_2}>
-          <Skeleton className="h-16" />
-          <Skeleton className="h-16" />
           <Skeleton className="h-16" />
         </div>
         <Skeleton className="h-9 w-32" />
@@ -77,6 +68,10 @@ export default function PointsConfigPage() {
         <>
           <Reveal>
             <Card title="Base points">
+              <p className="text-[13px] text-muted mb-4 -mt-1">
+                What an approved meeting is worth, by category. These values decide the score — a meeting
+                earns its category's base points, plus the premium client bonus below when it applies.
+              </p>
               <div className={GRID_2}>
                 <Field label="One-to-one meeting"><Input type="number" value={draft.base.ONE_TO_ONE} onChange={num('base.ONE_TO_ONE')} /></Field>
                 <Field label="Group meeting"><Input type="number" value={draft.base.GROUP} onChange={num('base.GROUP')} /></Field>
@@ -86,22 +81,17 @@ export default function PointsConfigPage() {
           </Reveal>
 
           <Reveal delay={80}>
-            <Card title="Bonuses & penalties">
+            <Card title="Bonuses">
               <div className={GRID_2}>
-                <Field label="Premium client bonus"><Input type="number" value={draft.bonuses.premiumClient} onChange={num('bonuses.premiumClient')} /></Field>
-                <Field label="Early submission bonus"><Input type="number" value={draft.bonuses.earlySubmission} onChange={num('bonuses.earlySubmission')} /></Field>
-                <Field label="Late submission penalty"><Input type="number" value={draft.penalties.lateSubmission} onChange={num('penalties.lateSubmission')} /></Field>
+                <Field
+                  label="Premium client bonus"
+                  hint="Added on top of the base points when a meeting is flagged as a premium client."
+                >
+                  <Input type="number" value={draft.bonuses.premiumClient} onChange={num('bonuses.premiumClient')} />
+                </Field>
               </div>
-            </Card>
-          </Reveal>
-
-          <Reveal delay={160}>
-            <Card title="Thresholds">
-              <div className={GRID_2}>
-                <Field label="Early if submitted before hour" hint="0–23 (local)"><Input type="number" min="0" max="23" value={draft.earlySubmissionBeforeHour} onChange={num('earlySubmissionBeforeHour')} /></Field>
-                <Field label="Late if submitted after (hours)"><Input type="number" min="0" value={draft.lateSubmissionAfterHours} onChange={num('lateSubmissionAfterHours')} /></Field>
-                <Field label="Duplicate window (days)"><Input type="number" min="0" value={draft.duplicateWindowDays} onChange={num('duplicateWindowDays')} /></Field>
-              </div>
+              {/* The Save button used to live in the Thresholds card; it moved
+                  here when that section was removed. */}
               <Button onClick={save} loading={saveStatus === 'loading'}>Save rules</Button>
               <span className="ml-3 text-xs text-muted">Current version: {draft.version}</span>
             </Card>

@@ -35,6 +35,16 @@ export const updateUser = createAsyncThunk('users/update', async ({ id, patch },
   }
 });
 
+/** Permanently removes the Cognito account as well as the profile — irreversible. */
+export const deleteUser = createAsyncThunk('users/delete', async (id, { rejectWithValue }) => {
+  try {
+    await api.delete(`/users/${id}`);
+    return id;
+  } catch (e) {
+    return rejectWithValue(apiError(e));
+  }
+});
+
 const usersSlice = createSlice({
   name: 'users',
   initialState: { list: [], managers: [], status: 'idle', createStatus: 'idle', error: null, lastCreated: null },
@@ -61,6 +71,9 @@ const usersSlice = createSlice({
       .addCase(updateUser.fulfilled, (s, a) => {
         const i = s.list.findIndex((u) => u.id === a.payload.id);
         if (i !== -1) s.list[i] = a.payload;
+      })
+      .addCase(deleteUser.fulfilled, (s, a) => {
+        s.list = s.list.filter((u) => u.id !== a.payload);
       });
   },
 });

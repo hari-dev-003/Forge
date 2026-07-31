@@ -3,25 +3,44 @@ import axios from 'axios';
 import { api, unwrap, apiError } from '../../api/client.js';
 
 /**
- * Full submission flow: presign -> upload photo straight to storage (S3/local)
- * -> create the meeting referencing the returned key. Mirrors production.
+ * Upload one file straight to storage via a presigned PUT, returning its key.
+ *
+ * `file.type` is always sent non-empty: an empty content type gets baked into
+ * the S3 signature, the browser then sends its own sniffed value, and S3
+ * rejects the PUT with 403 SignatureDoesNotMatch.
+ */
+async function uploadToStorage(file) {
+  const contentType = file.type || 'application/octet-stream';
+  const target = unwrap(await api.post('/uploads/presign', { contentType, filename: file.name }));
+  await axios.put(target.uploadUrl, file, { headers: target.headers });
+  return target.key;
+}
+
+/**
+ * Full submission flow: presign -> upload each photo straight to storage ->
+ * create the meeting referencing the returned keys.
+ *
+ * `photos` is 1–3 GPS-watermarked proof photos (all meeting types).
  * `screenshotFile` is optional (Direct Conversion's second, non-GPS upload).
+ * The photos upload in parallel — three sequential round trips on a field
+ * connection is a noticeably slower submit.
  */
 export const submitMeeting = createAsyncThunk(
   'meetings/submit',
-  async ({ form, file, screenshotFile }, { rejectWithValue }) => {
+  async ({ form, photos, screenshotFile }, { rejectWithValue }) => {
     try {
-      const target = unwrap(await api.post('/uploads/presign', { contentType: file.type }));
-      await axios.put(target.uploadUrl, file, { headers: target.headers });
+      const keys = await Promise.all(photos.map(uploadToStorage));
 
-      let payload = { ...form, photo: { key: target.key, caption: form.photoCaption || '' } };
+      let payload = {
+        ...form,
+        photos: keys.map((key) => ({ key, caption: '' })),
+      };
 
       if (screenshotFile) {
-        const scTarget = unwrap(await api.post('/uploads/presign', { contentType: screenshotFile.type }));
-        await axios.put(scTarget.uploadUrl, screenshotFile, { headers: scTarget.headers });
+        const screenshotKey = await uploadToStorage(screenshotFile);
         payload = {
           ...payload,
-          directConversion: { ...payload.directConversion, screenshot: { key: scTarget.key } },
+          directConversion: { ...payload.directConversion, screenshot: { key: screenshotKey } },
         };
       }
 

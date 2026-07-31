@@ -8,7 +8,7 @@ import Icon from '../components/ui/Icon.jsx';
 import LineChart from '../components/charts/LineChart.jsx';
 import DonutChart from '../components/charts/DonutChart.jsx';
 import BarChart from '../components/charts/BarChart.jsx';
-import { ROLES, MEETING_TYPES } from '../constants.js';
+import { ROLES, MEETING_TYPES, roleLabel } from '../constants.js';
 
 const STAT_GRID = 'grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4';
 const TH = 'text-left px-3.5 py-2.5 text-muted text-xs uppercase tracking-wide border-b border-border';
@@ -47,28 +47,32 @@ function DeltaBadge({ pct }) {
   );
 }
 
-function NeedsAttentionCard({ sla }) {
+// `sla` defaults defensively: a dashboard card is a read-only summary, so a
+// field the API didn't send should render as an empty state, never take the
+// whole page down with it.
+function NeedsAttentionCard({ sla = {} }) {
+  const oldest = sla.oldest || [];
   return (
     <Card title="Needs attention" actions={<Link to="/submissions" className="text-xs text-primary font-semibold hover:underline">View all</Link>}>
       <div className="grid grid-cols-3 gap-2 mb-4">
         <div className="text-center bg-surface-2 rounded-[10px] py-2.5">
-          <div className="text-lg font-bold font-heading text-success">{sla.onTrack}</div>
+          <div className="text-lg font-bold font-heading text-success">{sla.onTrack ?? 0}</div>
           <div className="text-[11px] text-muted uppercase tracking-wide mt-0.5">On track</div>
         </div>
         <div className="text-center bg-surface-2 rounded-[10px] py-2.5">
-          <div className="text-lg font-bold font-heading text-warning">{sla.dueSoon}</div>
+          <div className="text-lg font-bold font-heading text-warning">{sla.dueSoon ?? 0}</div>
           <div className="text-[11px] text-muted uppercase tracking-wide mt-0.5">Due soon</div>
         </div>
         <div className="text-center bg-surface-2 rounded-[10px] py-2.5">
-          <div className="text-lg font-bold font-heading text-danger">{sla.breached}</div>
+          <div className="text-lg font-bold font-heading text-danger">{sla.breached ?? 0}</div>
           <div className="text-[11px] text-muted uppercase tracking-wide mt-0.5">Breached</div>
         </div>
       </div>
-      {sla.oldest.length === 0 ? (
+      {oldest.length === 0 ? (
         <EmptyState title="All caught up" hint="No pending reviews waiting." icon={<Icon name="check" size={18} />} />
       ) : (
         <div className="flex flex-col gap-1.5">
-          {sla.oldest.map((m) => (
+          {oldest.map((m) => (
             <div key={m.meetingId} className="flex items-center gap-3 px-3 py-2 rounded-[9px] hover:bg-surface-2 transition-colors">
               <Icon name="alertTriangle" size={15} className="text-warning shrink-0" />
               <span className="flex-1 text-sm text-white truncate">{m.employeeName}</span>
@@ -184,8 +188,19 @@ export default function DashboardPage() {
 
   useEffect(() => { dispatch(fetchSummary()); }, [dispatch]);
 
-  const isUser = user.role === ROLES.USER;
-  const isAdmin = user.role === ROLES.ADMIN;
+  // Branch on the role the PAYLOAD declares, not the one in the auth slice.
+  //
+  // The two dashboard shapes differ: the USER summary has points/rank and no
+  // sla/performance/recentActivity, the Manager/Admin one is the reverse. The
+  // server picks the shape from its own view of the caller's role, so keying
+  // the render off the client's copy meant any disagreement between them —
+  // a stale token, a role changed mid-session, a backend running older code —
+  // rendered the manager branch against a user-shaped payload and crashed the
+  // whole page on the first missing field. The payload is the authority on its
+  // own shape; `user.role` is only the fallback while it's still loading.
+  const payloadRole = summary?.role || user.role;
+  const isUser = payloadRole === ROLES.USER;
+  const isAdmin = payloadRole === ROLES.ADMIN;
   const loading = status === 'loading' || !summary;
   const k = summary?.kpis;
 
@@ -197,7 +212,7 @@ export default function DashboardPage() {
         <p className="text-muted text-sm mt-1.5">
           {isUser
             ? "Here's your activity today."
-            : `${user.role} overview for your ${isAdmin ? 'organization' : 'team'}.`}
+            : `${roleLabel(user.role)} overview for your ${isAdmin ? 'organization' : 'team'}.`}
         </p>
       </div>
 

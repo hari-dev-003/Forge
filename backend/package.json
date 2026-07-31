@@ -8,6 +8,7 @@
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "bootstrap": "node src/bootstrap/bootstrap.js",
+    "migrate:announcements": "node src/bootstrap/migrateAnnouncements.js",
     "test": "echo \"no tests yet\" && exit 0"
   },
   "keywords": [

@@ -33,7 +33,7 @@ export const meetingRepo = {
     return strip(await store.getItem(K.meetingPk(meetingId), K.meetingSk()));
   },
 
-  /** Timeline for one employee, newest first. */
+  /** Timeline for one executive, newest first. */
   async listByUser(employeeId, { limit } = {}) {
     const store = getStore();
     const items = await store.query({

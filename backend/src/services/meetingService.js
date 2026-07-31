@@ -1,8 +1,16 @@
 import { meetingRepo } from '../repositories/meetingRepo.js';
 import { auditRepo } from '../repositories/auditRepo.js';
 import { withPhotoUrl, withPhotoUrls } from './photoUrls.js';
+import { assertUploadedImages } from './uploadGuards.js';
 import { newId } from '../lib/ids.js';
-import { ROLES, MEETING_STATUS, MEETING_TYPES, STAKING_VOLUME_THRESHOLD, STAKING_TYPES } from '../config/constants.js';
+import {
+  ROLES,
+  MEETING_STATUS,
+  MEETING_TYPES,
+  STAKING_VOLUME_THRESHOLD,
+  STAKING_TYPES,
+  MEETING_PHOTO_MAX,
+} from '../config/constants.js';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../lib/errors.js';
 
 /** Can this principal see this meeting? */
@@ -22,9 +30,22 @@ export const meetingService = {
     if (!user.managerId) {
       throw new BadRequestError('Your account is not assigned to a manager yet');
     }
-    if (!dto.photo?.key) {
+    // The schema normalises `photo`/`photos` into `photos`, but the service is
+    // also called with raw objects in places, so accept either here too.
+    const photos = (dto.photos?.length ? dto.photos : [dto.photo]).filter((p) => p?.key);
+    if (!photos.length) {
       throw new BadRequestError('A meeting photo is required');
     }
+    if (photos.length > MEETING_PHOTO_MAX) {
+      throw new BadRequestError(`At most ${MEETING_PHOTO_MAX} photos can be attached to a meeting.`);
+    }
+
+    await assertUploadedImages([
+      ...photos.map((p, i) => ({ key: p.key, label: `Photo ${i + 1}` })),
+      ...(dto.directConversion?.screenshot?.key
+        ? [{ key: dto.directConversion.screenshot.key, label: 'The screenshot' }]
+        : []),
+    ]);
 
     const now = new Date().toISOString();
     const meeting = {
@@ -35,7 +56,11 @@ export const meetingService = {
       employeeName: user.name,
       managerId: user.managerId,
       city: user.city || 'UNASSIGNED',
-      photo: { key: dto.photo.key, caption: dto.photo.caption || '' },
+      photos: photos.map((p) => ({ key: p.key, caption: p.caption || '' })),
+      // Kept in sync with photos[0]. Meetings stored before multi-photo support
+      // only have this field, and the list/card views still read it — so every
+      // meeting, old or new, has a usable primary photo.
+      photo: { key: photos[0].key, caption: photos[0].caption || '' },
       location: dto.location || null,
       isPremiumClient: !!dto.isPremiumClient,
       business: {

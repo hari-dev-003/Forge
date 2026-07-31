@@ -30,6 +30,12 @@ export default function AnnouncementsPage() {
 
   const items = important ? list.filter((a) => a.priority !== 'NORMAL') : list;
 
+  // The server already returns pinned announcements first; splitting them out
+  // here lets them render full-width above the grid rather than as ordinary
+  // cells. Both halves keep the server's ordering (newest first).
+  const pinned = items.filter((a) => a.isPinned);
+  const rest = items.filter((a) => !a.isPinned);
+
   const selectChip = (key) => {
     if (key === '__important') {
       setImportant((v) => !v);
@@ -85,9 +91,21 @@ export default function AnnouncementsPage() {
             <EmptyState title="No announcements yet" hint="Check back soon, or try a different filter." icon={<Icon name="megaphone" size={20} />} />
           </Card>
         ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
-            {items.map((a) => <AnnouncementCard key={a.id} announcement={a} />)}
-          </div>
+          <>
+            {pinned.length > 0 && (
+              <div className="flex flex-col gap-4 mb-4">
+                {pinned.map((a) => (
+                  <AnnouncementCard key={a.id} announcement={a} featured />
+                ))}
+              </div>
+            )}
+
+            {rest.length > 0 && (
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
+                {rest.map((a) => <AnnouncementCard key={a.id} announcement={a} />)}
+              </div>
+            )}
+          </>
         )}
       </Reveal>
     </div>

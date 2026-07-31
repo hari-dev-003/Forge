@@ -60,6 +60,16 @@ export const userRepo = {
     const items = await store.scan({ typeEquals: 'USER' });
     return items.map(toUser);
   },
+
+  /**
+   * Remove the profile row. Historical records that reference this user
+   * (meetings, points ledger, audit entries) are deliberately left intact —
+   * deleting them would rewrite the leaderboard and destroy the audit trail.
+   */
+  async remove(id) {
+    const store = getStore();
+    await store.deleteItem(K.userPk(id), K.userSk());
+  },
 };
 
 export default userRepo;

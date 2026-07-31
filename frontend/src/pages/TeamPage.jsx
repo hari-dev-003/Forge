@@ -1,20 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUsers, createUser, updateUser, resetCreate } from '../features/users/usersSlice.js';
+import { useNavigate } from 'react-router-dom';
+import { fetchUsers, createUser, resetCreate } from '../features/users/usersSlice.js';
+import { useUserActions } from '../features/users/useUserActions.js';
 import { pushToast } from '../features/ui/uiSlice.js';
-import { Card, Button, Field, Input, Spinner, EmptyState, Badge, PageHeader } from '../components/ui/index.jsx';
+import { Card, Button, Field, Input, PageHeader } from '../components/ui/index.jsx';
+import PeopleTable, { RowActions } from '../components/team/PeopleTable.jsx';
 import Reveal from '../components/ui/Reveal.jsx';
 import Icon from '../components/ui/Icon.jsx';
 import { ROLES } from '../constants.js';
 
 // Admin provisions Managers here (with a password they set themselves).
-// Manager provisions Users on their own team — the password is generated
+// Manager provisions Executives on their own team — the password is generated
 // server-side and shown once, below, for the manager to share manually.
+// Note: an executive's stored role value is still `USER`; only the wording
+// shown to people says "Executive" (see roleLabel in constants.js).
 const emptyManagerForm = { name: '', email: '', password: '', city: '' };
 const emptyUserForm = { name: '', email: '', city: '' };
 
-const TH = 'text-left px-3.5 py-3 text-muted text-xs uppercase tracking-wide border-b border-border';
-const TD = 'px-3.5 py-3 border-b border-border';
+// Admin browses managers; a manager browses their own executives.
+const MANAGERS_PAGE_SIZE = 25;
+const TEAM_PAGE_SIZE = 20;
 
 function TempPasswordBanner({ created, onDismiss }) {
   const [copied, setCopied] = useState(false);
@@ -59,25 +65,43 @@ function TempPasswordBanner({ created, onDismiss }) {
 
 export default function TeamPage() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { user } = useSelector((s) => s.auth);
   const { list, status, createStatus, error, lastCreated } = useSelector((s) => s.users);
   const isAdmin = user.role === ROLES.ADMIN;
   const [managerForm, setManagerForm] = useState(emptyManagerForm);
   const [userForm, setUserForm] = useState(emptyUserForm);
+  const [search, setSearch] = useState('');
+  const { toggleActive, removeUser, deletingId } = useUserActions();
 
   useEffect(() => { dispatch(fetchUsers()); }, [dispatch]);
 
+  // Admin sees managers, and drills into a manager to reach their executives.
+  // A manager sees their own team directly (the API already scopes their list).
+  //
+  // Both views are derived from the single /users response rather than a
+  // per-manager request: it is one round trip, it makes the team-size column
+  // free, and the drill-down is instant. Worth moving server-side (a managerId
+  // filter on GET /users) if the directory ever outgrows a single response.
+  const rows = useMemo(() => {
+    if (!isAdmin) return list.filter((u) => u.role === ROLES.USER);
+    const q = search.trim().toLowerCase();
+    return list
+      .filter((u) => u.role === ROLES.MANAGER)
+      .filter((u) => !q || u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q));
+  }, [list, isAdmin, search]);
+
+  const teamSizeOf = useMemo(() => {
+    const counts = new Map();
+    for (const u of list) {
+      if (u.role !== ROLES.USER || !u.managerId) continue;
+      counts.set(u.managerId, (counts.get(u.managerId) || 0) + 1);
+    }
+    return counts;
+  }, [list]);
+
   const setManagerField = (k) => (e) => setManagerForm({ ...managerForm, [k]: e.target.value });
   const setUserField = (k) => (e) => setUserForm({ ...userForm, [k]: e.target.value });
-
-  const toggleActive = async (u) => {
-    const res = await dispatch(updateUser({ id: u.id, patch: { active: !u.active } }));
-    if (res.meta.requestStatus === 'fulfilled') {
-      dispatch(pushToast({ message: `${u.name} ${u.active ? 'deactivated' : 'activated'}`, type: 'success' }));
-    } else {
-      dispatch(pushToast({ message: res.payload || 'Failed to update', type: 'error' }));
-    }
-  };
 
   const submitManager = async (e) => {
     e.preventDefault();
@@ -94,7 +118,7 @@ export default function TeamPage() {
     e.preventDefault();
     const res = await dispatch(createUser({ ...userForm, city: userForm.city || null }));
     if (res.meta.requestStatus === 'fulfilled') {
-      dispatch(pushToast({ message: 'Employee created', type: 'success' }));
+      dispatch(pushToast({ message: 'Executive created', type: 'success' }));
       setUserForm(emptyUserForm);
     } else {
       dispatch(pushToast({ message: res.payload || 'Failed to create', type: 'error' }));
@@ -106,12 +130,16 @@ export default function TeamPage() {
       <PageHeader
         eyebrow="People"
         title={isAdmin ? 'Managers' : 'My team'}
-        subtitle={isAdmin ? 'Create managers on the platform.' : 'Create and manage the field executives reporting to you.'}
+        subtitle={
+          isAdmin
+            ? 'Create managers, and open one to see the executives reporting to them.'
+            : 'Create and manage the field executives reporting to you.'
+        }
       />
 
       <TempPasswordBanner created={lastCreated} onDismiss={() => dispatch(resetCreate())} />
 
-      {isAdmin && (
+      {isAdmin ? (
         <Reveal>
           <Card title="Add a manager">
             <form onSubmit={submitManager}>
@@ -126,11 +154,9 @@ export default function TeamPage() {
             </form>
           </Card>
         </Reveal>
-      )}
-
-      {!isAdmin && (
+      ) : (
         <Reveal>
-          <Card title="Add an employee">
+          <Card title="Add an executive">
             <form onSubmit={submitUser}>
               <div className="grid grid-cols-2 gap-4 max-[860px]:grid-cols-1">
                 <Field label="Full name"><Input value={userForm.name} onChange={setUserField('name')} required /></Field>
@@ -138,7 +164,7 @@ export default function TeamPage() {
                 <Field label="City"><Input value={userForm.city} onChange={setUserField('city')} placeholder="Bengaluru, Chennai…" /></Field>
               </div>
               {error && <div className="bg-danger-soft text-danger px-3 py-2.5 rounded-[9px] text-[13px] mb-4">{error}</div>}
-              <Button type="submit" loading={createStatus === 'loading'}>Create employee</Button>
+              <Button type="submit" loading={createStatus === 'loading'}>Create executive</Button>
               <p className="text-xs text-muted mt-2.5">A temporary password is generated automatically — you'll get it here to share with them.</p>
             </form>
           </Card>
@@ -146,43 +172,51 @@ export default function TeamPage() {
       )}
 
       <Reveal delay={80}>
-        <Card title={`${list.length} ${isAdmin ? 'people' : 'team members'}`}>
-          {status === 'loading' ? (
-            <Spinner label="Loading…" />
-          ) : list.length === 0 ? (
-            <EmptyState title="No users yet" />
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-sm">
-                <thead>
-                  <tr>
-                    <th className={TH}>Name</th><th className={TH}>Email</th><th className={TH}>User ID</th>
-                    <th className={TH}>Role</th><th className={TH}>City</th><th className={TH}>Status</th>
-                    <th className={TH}></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {list.map((u) => (
-                    <tr key={u.id} className="hover:bg-surface-2 last:[&>td]:border-b-0">
-                      <td className={TD}>{u.name}</td>
-                      <td className={TD}>{u.email}</td>
-                      <td className={TD}>{u.userId || '—'}</td>
-                      <td className={TD}><Badge>{u.role}</Badge></td>
-                      <td className={TD}>{u.city || '—'}</td>
-                      <td className={TD}><Badge status={u.active === false ? 'REJECTED' : 'APPROVED'}>{u.active === false ? 'Inactive' : 'Active'}</Badge></td>
-                      <td className={TD}>
-                        {isAdmin && (
-                          <Button size="sm" variant={u.active === false ? 'primary' : 'ghost'} onClick={() => toggleActive(u)}>
-                            {u.active === false ? 'Activate' : 'Deactivate'}
-                          </Button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+        <Card
+          title={
+            isAdmin
+              ? `${rows.length} manager${rows.length === 1 ? '' : 's'}`
+              : `${rows.length} team member${rows.length === 1 ? '' : 's'}`
+          }
+          actions={
+            isAdmin && (
+              <div className="relative">
+                <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted/60" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search managers by name…"
+                  aria-label="Search managers by name"
+                  className="pl-9 w-64 max-[560px]:w-44"
+                />
+              </div>
+            )
+          }
+        >
+          <PeopleTable
+            rows={rows}
+            resetKey={search}
+            pageSize={isAdmin ? MANAGERS_PAGE_SIZE : TEAM_PAGE_SIZE}
+            loading={status === 'loading'}
+            showActions={isAdmin}
+            onRowClick={isAdmin ? (u) => navigate(`/team/${u.id}`) : undefined}
+            extraColumns={
+              isAdmin
+                ? [{ label: 'Team', render: (u) => teamSizeOf.get(u.id) || 0 }]
+                : []
+            }
+            emptyTitle={
+              isAdmin
+                ? search
+                  ? 'No managers match that search'
+                  : 'No managers yet'
+                : 'No team members yet'
+            }
+            emptyHint={isAdmin && search ? 'Try a different name.' : undefined}
+            actions={(u) => (
+              <RowActions user={u} onToggleActive={toggleActive} onDelete={removeUser} deletingId={deletingId} />
+            )}
+          />
         </Card>
       </Reveal>
     </div>

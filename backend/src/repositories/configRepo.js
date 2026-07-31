@@ -10,25 +10,37 @@ const strip = (item) => {
   return rest;
 };
 
+/**
+ * Project a stored config onto the current rule shape.
+ *
+ * Two directions matter:
+ *   - Fields added since the config was saved fall back to the default, so a
+ *     newly-introduced meeting category still scores instead of reading as 0.
+ *     A shallow merge isn't enough: an old stored `base` missing a category
+ *     would otherwise replace the default wholesale and silently drop it.
+ *   - Fields REMOVED since then (the early/late bonus + penalty, the threshold
+ *     settings, the unused duplicate window) are dropped rather than passed
+ *     through, so a v1 config can't hand the API dead keys that the engine no
+ *     longer honours and the config screen no longer renders.
+ *
+ * Only the keys listed here survive — this is the whole rule surface.
+ */
+export function normalise(stored = {}) {
+  return {
+    version: stored.version || DEFAULT_POINTS_RULES.version,
+    base: { ...DEFAULT_POINTS_RULES.base, ...stored.base },
+    bonuses: { premiumClient: stored.bonuses?.premiumClient ?? DEFAULT_POINTS_RULES.bonuses.premiumClient },
+    rejected: stored.rejected ?? DEFAULT_POINTS_RULES.rejected,
+    approvalSlaHours: stored.approvalSlaHours ?? DEFAULT_POINTS_RULES.approvalSlaHours,
+  };
+}
+
 export const configRepo = {
   async getPointsRules() {
     const store = getStore();
     const item = await store.getItem(K.configPk(), K.configSk(POINTS_RULES));
     if (!item) return DEFAULT_POINTS_RULES;
-    // Merge over the defaults so newly-added rule fields (e.g. approvalSlaHours,
-    // or a new base.DIRECT_CONVERSION) apply even to orgs whose stored config
-    // predates that field. A shallow merge isn't enough — nested objects like
-    // `base`/`bonuses`/`penalties` must be merged too, or an old stored `base`
-    // (missing a newly-added type) would wholesale replace the default and
-    // silently drop it.
-    const stored = strip(item).rules;
-    return {
-      ...DEFAULT_POINTS_RULES,
-      ...stored,
-      base: { ...DEFAULT_POINTS_RULES.base, ...stored.base },
-      bonuses: { ...DEFAULT_POINTS_RULES.bonuses, ...stored.bonuses },
-      penalties: { ...DEFAULT_POINTS_RULES.penalties, ...stored.penalties },
-    };
+    return normalise(strip(item).rules);
   },
 
   async setPointsRules(rules) {

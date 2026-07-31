@@ -14,11 +14,14 @@
 
     <!-- PWA -->
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#000000" />
+    <!-- Matches the app background so the browser chrome blends with the shell. -->
+    <meta name="theme-color" content="#0a0a0c" />
 
-    <!-- Icons -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Icons — generated from src/assets/forge-icon.jpeg by `npm run brand`.
+         No SVG favicon: the mark is a raster master, so a hand-drawn SVG
+         stand-in would just be a different logo at small sizes. -->
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/icons/favicon-48.png" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
 
     <!-- iOS standalone / Add to Home Screen -->

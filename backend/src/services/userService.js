@@ -12,7 +12,7 @@ export const userService = {
    *              (permanent, no forced change — matches existing behaviour).
    *   Manager -> creates a User on their own team, with a server-generated
    *              temporary password (returned once, here, for the manager to
-   *              share) that Cognito forces the employee to change on first login.
+   *              share) that Cognito forces the executive to change on first login.
    */
   async createUser(actor, dto) {
     if (actor.role === ROLES.ADMIN) {
@@ -80,6 +80,47 @@ export const userService = {
 
   async listManagers() {
     return userRepo.listByRole(ROLES.MANAGER);
+  },
+
+  /**
+   * Permanently delete a user: Cognito account first, then the DynamoDB
+   * profile. Admin-only and irreversible.
+   *
+   * Guards, in order of how badly each would break the deployment:
+   *   - an admin can never delete themselves (instant self-lockout);
+   *   - ADMIN accounts are not deletable through this endpoint at all, so the
+   *     platform can't be left with no administrator;
+   *   - the account must already be deactivated, which makes deletion a
+   *     deliberate two-step action rather than one mis-click in a long table.
+   *
+   * Cognito is deleted before DynamoDB: if the second step fails, the profile
+   * is still present and the delete can simply be retried. The reverse order
+   * would leave a live Cognito login with no profile behind it.
+   */
+  async deleteUser(actor, id) {
+    if (actor.role !== ROLES.ADMIN) throw new ForbiddenError('Only admins can delete users');
+    if (actor.id === id) throw new BadRequestError('You cannot delete your own account');
+
+    const user = await userRepo.getById(id);
+    if (!user) throw new NotFoundError('User not found');
+    if (user.role === ROLES.ADMIN) {
+      throw new ForbiddenError('Admin accounts cannot be deleted from the admin panel');
+    }
+    if (user.active !== false) {
+      throw new BadRequestError('Deactivate this user before deleting them');
+    }
+
+    const cognitoDeleted = await authProvider.adminDeleteUser({ email: user.email, id: user.id });
+    await userRepo.remove(id);
+
+    await auditRepo.record({
+      actorId: actor.id,
+      actorRole: actor.role,
+      action: 'USER_DELETED',
+      target: id,
+      meta: { email: user.email, role: user.role, cognitoDeleted },
+    });
+    return { id, cognitoDeleted };
   },
 
   async updateUser(actor, id, patch) {

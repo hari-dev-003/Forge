@@ -5,7 +5,7 @@ import { login, completeNewPassword, clearError, clearChallenge } from '../featu
 import { usePwaInstall } from '../hooks/usePwaInstall.js';
 import { Button, Field, Input } from '../components/ui/index.jsx';
 import Icon from '../components/ui/Icon.jsx';
-import BullMark from '../components/brand/BullMark.jsx';
+import { LogoMark } from '../components/brand/Logo.jsx';
 
 // Mirrors the Cognito password policy the backend enforces, so the meter can
 // never tell a user they're done while the API would still reject them.
@@ -167,17 +167,18 @@ export default function LoginPage() {
 
       {/* ─────────── Brand panel ─────────── */}
       <aside className="relative z-10 overflow-hidden border-r border-border bg-gradient-to-br from-hero-from via-hero-via to-hero-to p-14 flex flex-col justify-between max-[900px]:hidden">
-        {/* Large and centre-right, as in the version that worked — but sitting
-            fully inside the panel instead of running off the bottom edge, so the
-            horn sweep and the coins both stay whole. Opacity is up from the
-            original 7%: flat facet shading is the first thing to vanish when a
-            mark is faded, and without it the head loses its form. */}
+        {/* The mark alone as a large watermark — not the lockup. The lockup's
+            FORGE wordmark landed directly under the headline and read as a
+            second competing title; the mark carries the brand here without
+            repeating type the panel already shows top-left. Held at 20%: it is
+            dark metal on a dark panel, and below about 15% the anvil silhouette
+            stops resolving at all. */}
         <div
-          className="absolute right-[3%] top-1/2 -translate-y-1/2 w-[470px] max-w-none pointer-events-none select-none"
+          className="absolute right-[2%] top-1/2 -translate-y-1/2 w-[520px] max-w-none pointer-events-none select-none"
           aria-hidden="true"
         >
-          <div className="absolute left-[16%] top-[10%] w-[68%] h-[68%] rounded-full bg-primary/12 blur-[95px]" />
-          <BullMark className="relative w-full opacity-[0.16]" />
+          <div className="absolute left-[16%] top-[14%] w-[68%] h-[62%] rounded-full bg-primary/12 blur-[95px]" />
+          <LogoMark size="lg" className="relative w-full opacity-[0.20]" />
         </div>
         {/* Faint hairline grid for depth, masked out toward the edges. */}
         <div
@@ -192,9 +193,7 @@ export default function LoginPage() {
         />
 
         <div className="relative flex items-center gap-2.5">
-          <span className="w-9 h-9 rounded-[10px] bg-primary text-on-primary grid place-items-center font-extrabold shadow-[0_0_14px_rgba(238,179,28,0.3)]">
-            F
-          </span>
+          <LogoMark className="w-9 h-9 object-contain shrink-0" />
           <span className="text-lg font-bold text-white font-heading tracking-tight">Forge</span>
         </div>
 
@@ -225,25 +224,23 @@ export default function LoginPage() {
 
       {/* ─────────── Form panel ─────────── */}
       <main className="relative z-10 grid place-items-center p-10 pt-[max(40px,env(safe-area-inset-top))] max-[900px]:p-6">
-        {/* Mobile keeps the bull as a base watermark — the brand panel is hidden
-            below 900px, so this is the only place the motif survives. */}
+        {/* Mobile keeps the lockup as a base watermark — the brand panel is
+            hidden below 900px, so this is the only place the motif survives. */}
         <div
           className="hidden max-[900px]:block absolute left-1/2 -translate-x-1/2 bottom-0 w-[520px] max-w-[135%] pointer-events-none select-none"
           aria-hidden="true"
         >
           {/* Behind the form card, so it stays well under desktop strength. */}
-          <BullMark className="w-full opacity-[0.12]" />
+          <LogoMark size="lg" className="w-full opacity-[0.16]" />
         </div>
 
         <div className="relative w-full max-w-100">
-          {/* Mobile-only brand lockup — the aside is hidden below 900px, so
-              without this the small screen loses all brand context. Uses the F
-              badge rather than the bull: a full-body profile is illegible at
-              36px, and it would clash with the watermark below. */}
+          {/* Mobile-only brand row — the aside is hidden below 900px, so without
+              this the small screen loses all brand context. Uses the mark alone,
+              not the lockup: the wordmark is unreadable at 36px, and it would
+              repeat the watermark sitting behind the card. */}
           <div className="hidden max-[900px]:flex items-center justify-center gap-2.5 mb-7">
-            <span className="w-9 h-9 rounded-[10px] bg-primary text-on-primary grid place-items-center font-extrabold shadow-[0_0_14px_rgba(238,179,28,0.3)]">
-              F
-            </span>
+            <LogoMark className="w-9 h-9 object-contain shrink-0" />
             <span className="text-lg font-bold text-white font-heading tracking-tight">Forge</span>
           </div>
 

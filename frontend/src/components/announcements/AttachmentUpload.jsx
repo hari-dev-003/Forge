@@ -2,8 +2,13 @@ import { useRef } from 'react';
 import Icon from '../ui/Icon.jsx';
 import { pushToast } from '../../features/ui/uiSlice.js';
 import { useDispatch } from 'react-redux';
+import { IMAGE_UPLOAD_MAX_BYTES, formatBytes, isImageFile } from '../../constants.js';
 
-const MAX_FILE_BYTES = 20 * 1024 * 1024; // 20MB per file
+// Images are held to the product-wide image cap (the same one meeting photos
+// and the Direct Conversion screenshot obey). Documents are a different kind
+// of thing — a deck or a circular is legitimately larger — so they keep their
+// own, looser limit.
+const MAX_DOCUMENT_BYTES = 20 * 1024 * 1024; // 20MB per non-image file
 const MAX_FILES = 5;
 const ACCEPT =
   'image/jpeg,image/png,image/webp,application/pdf,' +
@@ -12,14 +17,22 @@ const ACCEPT =
   'application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,' +
   'application/zip,application/x-zip-compressed';
 
-const fmtSize = (bytes) => (bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / (1024 * 1024)).toFixed(1)} MB`);
+const fmtSize = formatBytes;
+
+/** The size cap that applies to this particular file. */
+const limitFor = (file) => (isImageFile(file) ? IMAGE_UPLOAD_MAX_BYTES : MAX_DOCUMENT_BYTES);
 
 /**
  * Multi-file attachment picker for announcements — any of the announcement
- * file types (image/PDF/PPT/DOC/XLSX/ZIP), 20MB/file, up to 5 files.
- * Server-side size enforcement isn't implemented (the presigned-PUT flow this
- * app uses doesn't support a declarative size condition the way presigned-POST
- * policies do) — this client-side check is the only guard in Phase 1.
+ * file types (image/PDF/PPT/DOC/XLSX/ZIP), up to 5 files.
+ *
+ * Two size caps, by kind: images must be IMAGE_UPLOAD_MAX_BYTES or smaller
+ * (the product-wide rule for every image), documents may be up to
+ * MAX_DOCUMENT_BYTES.
+ *
+ * A presigned PUT can't carry a size condition, so this check can't be the
+ * only guard — announcementService re-checks every image against the object
+ * actually stored in the bucket before saving the announcement.
  */
 export default function AttachmentUpload({ files, onChange }) {
   const inputRef = useRef(null);
@@ -35,9 +48,12 @@ export default function AttachmentUpload({ files, onChange }) {
       return;
     }
 
-    const tooLarge = picked.filter((f) => f.size > MAX_FILE_BYTES);
+    const tooLarge = picked.filter((f) => f.size > limitFor(f));
     if (tooLarge.length) {
-      dispatch(pushToast({ message: `${tooLarge.map((f) => f.name).join(', ')} exceeds the 20MB limit`, type: 'error' }));
+      const detail = tooLarge
+        .map((f) => `${f.name} (${fmtSize(f.size)}, max ${fmtSize(limitFor(f))})`)
+        .join(', ');
+      dispatch(pushToast({ message: `Too large: ${detail}`, type: 'error' }));
       return;
     }
 
@@ -55,7 +71,10 @@ export default function AttachmentUpload({ files, onChange }) {
       >
         <Icon name="paperclip" size={26} className="text-muted/60" />
         <span>Click to attach files</span>
-        <span className="text-xs">Images, PDF, PPT, DOC, XLSX, ZIP — up to 20MB each, {MAX_FILES} max</span>
+        <span className="text-xs">
+          Images up to {fmtSize(IMAGE_UPLOAD_MAX_BYTES)} · PDF, PPT, DOC, XLSX, ZIP up to{' '}
+          {fmtSize(MAX_DOCUMENT_BYTES)} · {MAX_FILES} files max
+        </span>
       </button>
       <input ref={inputRef} type="file" accept={ACCEPT} multiple hidden onChange={handle} />
 

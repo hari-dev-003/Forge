@@ -179,8 +179,38 @@ export const cognitoAuth = {
       logger.warn('Token verification failed', { name: e.name, message: e.message });
       throw new UnauthorizedError('Invalid or expired token');
     }
-    const role = roleFromGroups(payload['cognito:groups']);
     const profile = (await userRepo.getById(payload.sub)) || {};
+
+    // The DynamoDB profile is the authoritative role, with the token's Cognito
+    // groups as the fallback for a principal that has no profile row yet.
+    //
+    // These two MUST agree or the app breaks in a confusing way: login() hands
+    // the frontend the DynamoDB profile (so the UI routes on profile.role),
+    // while every request was previously authorized on the group-derived role.
+    // An admin whose ID token lacks the `Admin` group — group added after the
+    // token was minted, pool restored, user re-created — therefore saw the
+    // admin UI but got a bare 403 from every admin-only endpoint (e.g.
+    // POST /announcements). `role` is server-assigned at provisioning time and
+    // is not patchable through updateUser, so trusting the profile here is not
+    // a privilege-escalation path.
+    const groupRole = roleFromGroups(payload['cognito:groups']);
+    const role = profile.role || groupRole;
+    if (profile.role && profile.role !== groupRole) {
+      logger.warn('Role mismatch between DynamoDB profile and Cognito groups', {
+        userId: payload.sub,
+        profileRole: profile.role,
+        groupRole,
+        groups: payload['cognito:groups'] || [],
+      });
+    }
+
+    // A token outlives a deactivation, so re-check on every request — otherwise
+    // a user deactivated in the admin panel keeps full access until their token
+    // happens to expire.
+    if (profile.active === false) {
+      throw new ForbiddenError('Your account has been deactivated');
+    }
+
     return {
       id: payload.sub,
       email: payload.email,
@@ -281,6 +311,39 @@ export const cognitoAuth = {
       }
       throw e;
     }
+  },
+
+  /**
+   * Permanently delete a user's Cognito account.
+   *
+   * Accounts are created with a sanitized username (see sanitizeUsername), but
+   * users provisioned by other means — or before that rule existed — may be
+   * keyed by their raw email or by the `sub`. Try each in turn so a delete
+   * never half-fails and strands an account. Returns true if Cognito actually
+   * removed something, false if no matching account existed (already gone —
+   * which the caller treats as success so the DynamoDB profile can still be
+   * cleaned up).
+   */
+  async adminDeleteUser({ email, id }) {
+    const candidates = [...new Set([email && sanitizeUsername(email), email, id].filter(Boolean))];
+
+    let lastError = null;
+    for (const Username of candidates) {
+      try {
+        await client.send(
+          new AdminDeleteUserCommand({ UserPoolId: env.cognito.userPoolId, Username })
+        );
+        return true;
+      } catch (e) {
+        if (e.name === 'UserNotFoundException') continue;
+        lastError = e;
+        break;
+      }
+    }
+    if (lastError) throw lastError;
+
+    logger.warn('No matching Cognito account to delete', { id, tried: candidates });
+    return false;
   },
 
   /** Idempotently ensure a Cognito group exists (bootstrap helper). */

@@ -12,7 +12,7 @@ const TYPE_TAG = {
 const DEFAULT_TAG = { label: '1-to-1', className: 'bg-primary-soft text-primary' };
 
 /** Reusable meeting summary used in the review queue and history lists. */
-export default function MeetingCard({ meeting, showEmployee, children }) {
+export default function MeetingCard({ meeting, showExecutive, children }) {
   const isGroup = meeting.type === MEETING_TYPES.GROUP;
   const isDirectConversion = meeting.type === MEETING_TYPES.DIRECT_CONVERSION;
   const title = isGroup
@@ -21,13 +21,16 @@ export default function MeetingCard({ meeting, showEmployee, children }) {
       ? meeting.directConversion?.name
       : meeting.customer?.name;
   const tag = TYPE_TAG[meeting.type] || DEFAULT_TAG;
+  // `photos` is the current field; `photo` is all a pre-multi-photo meeting has.
+  const photoCount = meeting.photos?.length || (meeting.photo ? 1 : 0);
+  const cover = meeting.photos?.[0] || meeting.photo;
 
   return (
     <article className="glow-card flex gap-4 bg-surface/80 backdrop-blur-md border border-border rounded-[14px] p-3.5 shadow-card">
-      <div className="w-24 h-24 rounded-[9px] overflow-hidden shrink-0 bg-surface-2">
-        {meeting.photo?.url ? (
+      <div className="relative w-24 h-24 rounded-[9px] overflow-hidden shrink-0 bg-surface-2">
+        {cover?.url ? (
           <img
-            src={assetUrl(meeting.photo.url)}
+            src={assetUrl(cover.url)}
             alt="proof"
             className="w-full h-full object-cover"
             onError={(e) => (e.target.style.display = 'none')}
@@ -36,6 +39,13 @@ export default function MeetingCard({ meeting, showEmployee, children }) {
           <div className="w-full h-full grid place-items-center text-muted/50">
             <Icon name={isGroup ? 'users' : isDirectConversion ? 'trendingUp' : 'user'} size={30} />
           </div>
+        )}
+        {/* A meeting can carry up to 3 proof photos; flag the extras so a
+            reviewer knows to open it rather than judging by the thumbnail. */}
+        {photoCount > 1 && (
+          <span className="absolute bottom-1 right-1 inline-flex items-center gap-0.5 text-[10px] font-bold text-white bg-black/70 rounded-md px-1.5 py-0.5">
+            <Icon name="image" size={10} /> {photoCount}
+          </span>
         )}
       </div>
 
@@ -58,7 +68,7 @@ export default function MeetingCard({ meeting, showEmployee, children }) {
         </div>
 
         <div className="flex flex-wrap gap-3.5 mt-2.5 text-[13px] text-muted">
-          {showEmployee && meeting.employeeName && (
+          {showExecutive && meeting.employeeName && (
             <span className="inline-flex items-center gap-1.5"><Icon name="user" size={14} />{meeting.employeeName}</span>
           )}
           {isGroup ? (

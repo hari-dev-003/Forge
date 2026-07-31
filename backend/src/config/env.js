@@ -22,6 +22,10 @@ export const env = {
   awsSecretAccessKey: get('AWS_SECRET_ACCESS_KEY'),
   awsSessionToken: get('AWS_SESSION_TOKEN'), // only for temporary/STS creds
   ddbTableName: get('DDB_TABLE_NAME', { def: 'Forge' }),
+  // Announcements live in their own table so the broadcast feed can be scanned
+  // and listed without competing for throughput with the main table (users,
+  // meetings, points, audit) and so it can be scaled/backed up independently.
+  ddbAnnouncementsTableName: get('DDB_ANNOUNCEMENTS_TABLE_NAME', { def: 'ForgeAnnouncements' }),
 
   // S3
   s3Bucket: get('S3_BUCKET'),
@@ -78,6 +82,7 @@ export function validateEnv({ requireBootstrapAdmin = false } = {}) {
   const required = {
     AWS_REGION: env.awsRegion,
     DDB_TABLE_NAME: env.ddbTableName,
+    DDB_ANNOUNCEMENTS_TABLE_NAME: env.ddbAnnouncementsTableName,
     S3_BUCKET: env.s3Bucket,
     COGNITO_USER_POOL_ID: env.cognito.userPoolId,
     COGNITO_CLIENT_ID: env.cognito.clientId,

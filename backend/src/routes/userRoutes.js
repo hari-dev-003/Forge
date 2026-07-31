@@ -13,5 +13,7 @@ router.post('/', authorize(ROLES.ADMIN, ROLES.MANAGER), validate(createUserSchem
 router.get('/', authorize(ROLES.ADMIN, ROLES.MANAGER), userController.list);
 router.get('/managers', authorize(ROLES.ADMIN), userController.managers);
 router.patch('/:id', authorize(ROLES.ADMIN), validate(updateUserSchema), userController.update);
+// Hard delete — removes the Cognito account as well as the profile.
+router.delete('/:id', authorize(ROLES.ADMIN), userController.remove);
 
 export default router;

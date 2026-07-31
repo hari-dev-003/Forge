@@ -23,6 +23,11 @@ import {
   ROLES,
 } from '../constants.js';
 
+// Mirrors MAX_PINNED_ANNOUNCEMENTS in the backend constants — the server is
+// the one that enforces it; this just stops the admin from composing a whole
+// announcement only to be rejected on submit.
+const MAX_PINNED = 5;
+
 const emptyForm = {
   title: '',
   category: 'GENERAL',
@@ -40,11 +45,47 @@ const TH = 'text-left px-3.5 py-3 text-muted text-xs uppercase tracking-wide bor
 const TD = 'px-3.5 py-3 border-b border-border';
 const GRID_2 = 'grid grid-cols-2 gap-4 max-[860px]:grid-cols-1';
 
+/**
+ * Upload one attachment straight to storage via a presigned PUT.
+ *
+ * `file.type` is empty for plenty of real files (Windows reports nothing for
+ * .zip / extension-less files), and an empty content type gets baked into the
+ * S3 signature — the browser then sends its own sniffed value and S3 rejects
+ * the PUT with 403 SignatureDoesNotMatch. Always send a concrete type, and
+ * always PUT with exactly the headers the server signed.
+ */
 async function uploadFile(file) {
-  const target = unwrap(await api.post('/uploads/presign', { contentType: file.type, prefix: 'announcements' }));
-  await axios.put(target.uploadUrl, file, { headers: target.headers });
-  return { key: target.key, fileName: file.name, contentType: file.type, sizeBytes: file.size };
+  const contentType = file.type || 'application/octet-stream';
+  const target = unwrap(
+    await api.post('/uploads/presign', { contentType, prefix: 'announcements', filename: file.name })
+  );
+  try {
+    await axios.put(target.uploadUrl, file, { headers: target.headers });
+  } catch (err) {
+    const status = err?.response?.status;
+    if (status === 403) {
+      throw new Error(
+        `Storage rejected the upload of "${file.name}" (403). The S3 bucket policy or IAM role must allow ` +
+          `s3:PutObject on the announcements/ prefix, and the bucket must accept the presigned request.`
+      );
+    }
+    throw new Error(`Upload of "${file.name}" failed${status ? ` (HTTP ${status})` : ''}.`);
+  }
+  // Record the content type the server actually signed, not the browser's guess.
+  return {
+    key: target.key,
+    fileName: file.name,
+    contentType: target.headers?.['Content-Type'] || contentType,
+    sizeBytes: file.size,
+  };
 }
+
+// The form speaks the admin's *intent* (what the Select offers); POST /announcements
+// takes that intent, while PATCH takes the stored status enum. Translate at the
+// boundary in both directions — otherwise editing an announcement either shows a
+// blank Select or PATCHes an intent value the update schema rejects.
+const STATUS_INTENT_FROM_STORED = { DRAFT: 'DRAFT', PUBLISHED: 'PUBLISH_NOW', SCHEDULED: 'SCHEDULE' };
+const STATUS_STORED_FROM_INTENT = { DRAFT: 'DRAFT', PUBLISH_NOW: 'PUBLISHED', SCHEDULE: 'SCHEDULED' };
 
 function toLocalInputValue(iso) {
   if (!iso) return '';
@@ -64,6 +105,11 @@ export default function AnnouncementAdminPage() {
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => { dispatch(fetchManagedAnnouncements()); }, [dispatch]);
+
+  // An announcement being edited already owns its slot, so it must not count
+  // against the cap when re-saved — same rule the server applies.
+  const pinnedCount = managed.filter((a) => a.isPinned).length;
+  const pinsFull = managed.filter((a) => a.isPinned && a.id !== editingId).length >= MAX_PINNED;
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
@@ -92,7 +138,7 @@ export default function AnnouncementAdminPage() {
       type: a.type,
       priority: a.priority,
       isPinned: a.isPinned,
-      status: a.status,
+      status: STATUS_INTENT_FROM_STORED[a.status] || 'PUBLISH_NOW',
       publishDate: toLocalInputValue(a.publishDate),
       expiryDate: toLocalInputValue(a.expiryDate),
       animationType: a.animationType || ANNOUNCEMENT_ANIMATION.NONE,
@@ -125,7 +171,8 @@ export default function AnnouncementAdminPage() {
         animationType: form.animationType,
         publishDate: form.publishDate ? new Date(form.publishDate).toISOString() : undefined,
         expiryDate: form.expiryDate ? new Date(form.expiryDate).toISOString() : null,
-        status: form.status,
+        // POST takes the intent; PATCH takes the stored enum.
+        status: editingId ? STATUS_STORED_FROM_INTENT[form.status] || form.status : form.status,
       };
 
       const res = editingId
@@ -150,6 +197,10 @@ export default function AnnouncementAdminPage() {
     const res = await dispatch(updateAnnouncement({ id: a.id, patch: { isPinned: !a.isPinned } }));
     if (res.meta.requestStatus === 'fulfilled') {
       dispatch(pushToast({ message: a.isPinned ? 'Unpinned' : 'Pinned', type: 'success' }));
+    } else {
+      // Surfaces the server's pin-cap rejection — without this the button just
+      // appeared to do nothing once all slots were full.
+      dispatch(pushToast({ message: res.payload || 'Failed to update', type: 'error' }));
     }
   };
 
@@ -245,7 +296,19 @@ export default function AnnouncementAdminPage() {
               </div>
             </Field>
 
-            <Checkbox label="Pin this announcement" checked={form.isPinned} onChange={(e) => setForm({ ...form, isPinned: e.target.checked })} className="mb-4" />
+            <div className="mb-4">
+              <Checkbox
+                label="Pin this announcement"
+                checked={form.isPinned}
+                disabled={!form.isPinned && pinsFull}
+                onChange={(e) => setForm({ ...form, isPinned: e.target.checked })}
+              />
+              <p className={`text-xs mt-1 ${pinsFull && !form.isPinned ? 'text-warning' : 'text-muted'}`}>
+                {pinsFull && !form.isPinned
+                  ? `All ${MAX_PINNED} pin slots are used — unpin one below to pin this.`
+                  : `Pinned announcements show full-width at the top of the feed. ${pinnedCount} of ${MAX_PINNED} slots used.`}
+              </p>
+            </div>
 
             {error && <div className="bg-danger-soft text-danger px-3 py-2.5 rounded-[9px] text-[13px] mb-4">{error}</div>}
 

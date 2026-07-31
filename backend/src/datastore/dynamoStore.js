@@ -57,12 +57,19 @@ function buildCondition(condition, names, values) {
   return undefined;
 }
 
-export function createDynamoStore() {
+/**
+ * @param {object}  [opts]
+ * @param {string}  [opts.tableName]  Table to bind to. Defaults to the main
+ *   single-table store; announcements live in their own table (see
+ *   datastore/index.js) but use the identical pk/sk + GSI1 shape, so the same
+ *   store implementation serves both.
+ */
+export function createDynamoStore({ tableName = env.ddbTableName } = {}) {
   const client = new DynamoDBClient(awsClientConfig());
   const doc = DynamoDBDocumentClient.from(client, {
     marshallOptions: { removeUndefinedValues: true },
   });
-  const TableName = env.ddbTableName;
+  const TableName = tableName;
 
   const isConditionalFail = (e) =>
     e?.name === 'ConditionalCheckFailedException' ||
@@ -135,29 +142,49 @@ export function createDynamoStore() {
         values[':skp'] = prefix;
         KeyConditionExpression += ' AND begins_with(#sk, :skp)';
       }
-      const { Items } = await doc.send(
-        new QueryCommand({
-          TableName,
-          ...(index ? { IndexName: index.toUpperCase() } : {}),
-          KeyConditionExpression,
-          ExpressionAttributeNames: names,
-          ExpressionAttributeValues: values,
-          ScanIndexForward: scanForward,
-          ...(limit ? { Limit: limit } : {}),
-        })
-      );
-      return Items ?? [];
+      // Follow LastEvaluatedKey: DynamoDB caps a single page at 1MB, so a
+      // one-shot Query silently truncates once a partition outgrows that.
+      // Callers here expect the complete result set (feeds, team listings).
+      const items = [];
+      let ExclusiveStartKey;
+      do {
+        const res = await doc.send(
+          new QueryCommand({
+            TableName,
+            ...(index ? { IndexName: index.toUpperCase() } : {}),
+            KeyConditionExpression,
+            ExpressionAttributeNames: names,
+            ExpressionAttributeValues: values,
+            ScanIndexForward: scanForward,
+            ...(limit ? { Limit: limit } : {}),
+            ...(ExclusiveStartKey ? { ExclusiveStartKey } : {}),
+          })
+        );
+        items.push(...(res.Items ?? []));
+        ExclusiveStartKey = res.LastEvaluatedKey;
+        if (limit && items.length >= limit) return items.slice(0, limit);
+      } while (ExclusiveStartKey);
+      return items;
     },
 
+    /** Full table scan, following LastEvaluatedKey to completion. */
     async scan({ typeEquals } = {}) {
-      const params = { TableName };
+      const base = { TableName };
       if (typeEquals) {
-        params.FilterExpression = '#e = :e';
-        params.ExpressionAttributeNames = { '#e': 'entity' };
-        params.ExpressionAttributeValues = { ':e': typeEquals };
+        base.FilterExpression = '#e = :e';
+        base.ExpressionAttributeNames = { '#e': 'entity' };
+        base.ExpressionAttributeValues = { ':e': typeEquals };
       }
-      const { Items } = await doc.send(new ScanCommand(params));
-      return Items ?? [];
+      const items = [];
+      let ExclusiveStartKey;
+      do {
+        const res = await doc.send(
+          new ScanCommand({ ...base, ...(ExclusiveStartKey ? { ExclusiveStartKey } : {}) })
+        );
+        items.push(...(res.Items ?? []));
+        ExclusiveStartKey = res.LastEvaluatedKey;
+      } while (ExclusiveStartKey);
+      return items;
     },
 
     async transactWrite(actions) {

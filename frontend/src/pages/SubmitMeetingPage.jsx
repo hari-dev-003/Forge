@@ -29,7 +29,7 @@ export default function SubmitMeetingPage() {
   const navigate = useNavigate();
   const { submitStatus, error } = useSelector((s) => s.meetings);
   const [form, setForm] = useState(empty);
-  const [file, setFile] = useState(null);
+  const [photos, setPhotos] = useState([]);
   const [location, setLocation] = useState(null);
   const [screenshotFile, setScreenshotFile] = useState(null);
   const [members, setMembers] = useState([{ ...emptyMember }, { ...emptyMember }]);
@@ -59,7 +59,9 @@ export default function SubmitMeetingPage() {
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!file || !location) return dispatch(pushToast({ message: 'Please attach a GPS photo (location is captured automatically)', type: 'error' }));
+    if (!photos.length || !location) {
+      return dispatch(pushToast({ message: 'Please attach at least one GPS photo (location is captured automatically)', type: 'error' }));
+    }
     if (isGroup && members.some((m) => !m.name.trim())) {
       return dispatch(pushToast({ message: 'Please enter a name for every attendee', type: 'error' }));
     }
@@ -91,7 +93,9 @@ export default function SubmitMeetingPage() {
           : { customer: { name: form.customerName, phone: form.customerPhone, city: form.customerCity } }),
     };
 
-    const res = await dispatch(submitMeeting({ form: payload, file, screenshotFile: isDirectConversion ? screenshotFile : undefined }));
+    const res = await dispatch(
+      submitMeeting({ form: payload, photos, screenshotFile: isDirectConversion ? screenshotFile : undefined })
+    );
     if (res.meta.requestStatus === 'fulfilled') {
       dispatch(pushToast({ message: 'Meeting submitted for review', type: 'success' }));
       dispatch(resetSubmit());
@@ -193,8 +197,10 @@ export default function SubmitMeetingPage() {
           </Card>
 
           <div className="flex flex-col gap-4">
-            <Card title="GPS photo">
-              <PhotoUpload onSelect={setFile} onLocation={setLocation} />
+            {/* Shown for every meeting type — one-to-one, group and direct
+                conversion all require photo proof. */}
+            <Card title="GPS photos">
+              <PhotoUpload files={photos} onSelect={setPhotos} onLocation={setLocation} />
             </Card>
 
             {isDirectConversion && (

@@ -1,20 +1,28 @@
 // One-time bootstrap for a fresh deployment. Requires real AWS resources +
 // credentials (Cognito user pool, DynamoDB table). Idempotent — safe to re-run.
 //
-//   1. Ensures the Admin / Manager / User Cognito groups exist
-//   2. Writes the default points rules to DynamoDB
-//   3. Creates the first Admin user (Cognito + DynamoDB profile)
+//   1. Creates the dedicated announcements DynamoDB table if it is missing
+//   2. Ensures the Admin / Manager / User Cognito groups exist
+//   3. Writes the default points rules to DynamoDB
+//   4. Creates the first Admin user (Cognito + DynamoDB profile)
+//
+// If this deployment already had announcements in the main table, follow up
+// with `npm run migrate:announcements` to copy them across.
 //
 // Run:  BOOTSTRAP_ADMIN_EMAIL / BOOTSTRAP_ADMIN_PASSWORD set in .env, then
 //   npm run bootstrap
 import { env, validateEnv } from '../config/env.js';
 import { cognitoAuth } from '../auth/cognitoAuth.js';
 import { configRepo } from '../repositories/configRepo.js';
+import { ensureAnnouncementsTable } from '../datastore/provision.js';
 import { DEFAULT_POINTS_RULES, ROLES } from '../config/constants.js';
 import { logger } from '../lib/logger.js';
 
 async function main() {
   validateEnv({ requireBootstrapAdmin: true });
+
+  logger.info('Ensuring the announcements DynamoDB table exists…');
+  await ensureAnnouncementsTable(env.ddbAnnouncementsTableName);
 
   logger.info('Ensuring Cognito groups exist (Admin, Manager, User)…');
   for (const group of ['Admin', 'Manager', 'User']) {

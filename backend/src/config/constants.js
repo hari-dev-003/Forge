@@ -17,6 +17,19 @@ export const MEETING_TYPES = Object.freeze({
 export const STAKING_VOLUME_THRESHOLD = 100000;
 export const STAKING_TYPES = Object.freeze({ BVS: 'BVS', ESP: 'ESP' });
 
+// The size ceiling for EVERY image uploaded anywhere in the product — meeting
+// proof photos, the Direct Conversion screenshot, and image attachments on an
+// announcement. A file of exactly this size is allowed; anything larger is not.
+//
+// Enforced twice: client-side for the UX, and again server-side against the
+// object actually in the bucket (see services/uploadGuards.js), because a
+// presigned PUT carries no size condition and the client could otherwise
+// upload anything and simply report a smaller number.
+export const IMAGE_UPLOAD_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+
+// Proof photos per meeting — applies to every meeting type; at least one is required.
+export const MEETING_PHOTO_MAX = 3;
+
 export const MEETING_STATUS = Object.freeze({
   PENDING: 'PENDING',
   APPROVED: 'APPROVED',
@@ -53,6 +66,11 @@ export const ANNOUNCEMENT_CATEGORIES = Object.freeze({
   NEWS: 'NEWS',
 });
 
+// Pinned announcements are rendered full-width above the feed grid, so the
+// list stops being a "highlights" section if everything is pinned. Enforced
+// server-side in announcementService (create + update).
+export const MAX_PINNED_ANNOUNCEMENTS = 5;
+
 export const ANNOUNCEMENT_PRIORITY = Object.freeze({
   NORMAL: 'NORMAL',
   IMPORTANT: 'IMPORTANT',
@@ -76,18 +94,19 @@ export const ANNOUNCEMENT_ANIMATION = Object.freeze({
 });
 
 // Default, admin-editable points rules (see config/POINTS_RULES item).
+//
+// A meeting's score is entirely: base points for its category, plus the
+// premium-client bonus. Timeliness scoring (early-submission bonus, late
+// -submission penalty) and its threshold settings were removed along with the
+// unused duplicate-window rule — v2 is the marker for that change, so awards
+// stamped v1 can still be recognised as having used the old formula.
 export const DEFAULT_POINTS_RULES = Object.freeze({
-  version: 'v1',
+  version: 'v2',
+  // One entry per MEETING_TYPES value — this is what decides a meeting's worth.
   base: { ONE_TO_ONE: 10, GROUP: 25, DIRECT_CONVERSION: 15 },
-  bonuses: { premiumClient: 20, earlySubmission: 5 },
-  penalties: { lateSubmission: -5 },
+  bonuses: { premiumClient: 20 },
   rejected: 0,
-  // A meeting is "early" if submitted before this hour (local) on the meeting day.
-  earlySubmissionBeforeHour: 12,
-  // A meeting is "late" if submitted more than this many hours after it occurred.
-  lateSubmissionAfterHours: 24,
-  // Same customer phone within this window scores 0 (optional business rule).
-  duplicateWindowDays: 7,
-  // A pending review is "aged"/SLA-breached once it's waited longer than this.
+  // Not a points rule: a pending review is "aged"/SLA-breached once it has
+  // waited longer than this. Used by the review queue and dashboard.
   approvalSlaHours: 24,
 });

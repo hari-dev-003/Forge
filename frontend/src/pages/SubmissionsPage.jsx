@@ -1,11 +1,11 @@
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { fetchSubmissions } from '../features/submissions/submissionsSlice.js';
 import { fetchUsers } from '../features/users/usersSlice.js';
 import { Card, Button, Field, Input, Select, Badge, Skeleton, EmptyState, PageHeader } from '../components/ui/index.jsx';
 import Reveal from '../components/ui/Reveal.jsx';
 import Icon from '../components/ui/Icon.jsx';
-import { assetUrl } from '../api/client.js';
 import { MEETING_TYPES, MEETING_STATUS, STATUS_LABEL, ROLES } from '../constants.js';
 
 const PAGE_SIZE = 15;
@@ -30,15 +30,15 @@ function SortIcon({ active, dir }) {
 
 export default function SubmissionsPage() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { user } = useSelector((s) => s.auth);
   const { items, status } = useSelector((s) => s.submissions);
-  const employees = useSelector((s) => s.users.list);
+  const executives = useSelector((s) => s.users.list);
   const isAdmin = user.role === ROLES.ADMIN;
 
   const [filters, setFilters] = useState({ from: '', to: '', status: '', type: '', employeeId: '' });
   const [sort, setSort] = useState({ field: 'createdAt', dir: 'desc' });
   const [page, setPage] = useState(1);
-  const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => { dispatch(fetchUsers()); }, [dispatch]);
   useEffect(() => { dispatch(fetchSubmissions(filters)); setPage(1); }, [dispatch, filters]);
@@ -99,11 +99,11 @@ export default function SubmissionsPage() {
                 <option value={MEETING_TYPES.DIRECT_CONVERSION}>Direct conversion</option>
               </Select>
             </Field>
-            {employees.length > 0 && (
-              <Field label={isAdmin ? 'Employee' : 'Team member'}>
+            {executives.length > 0 && (
+              <Field label={isAdmin ? 'Executive' : 'Team member'}>
                 <Select value={filters.employeeId} onChange={setFilter('employeeId')}>
                   <option value="">Everyone</option>
-                  {employees.filter((e) => e.role === ROLES.USER).map((e) => (
+                  {executives.filter((e) => e.role === ROLES.USER).map((e) => (
                     <option key={e.id} value={e.id}>{e.name}</option>
                   ))}
                 </Select>
@@ -140,7 +140,7 @@ export default function SubmissionsPage() {
                 <thead>
                   <tr>
                     <Th field="createdAt" label="Submitted" />
-                    <Th field="employeeName" label="Employee" />
+                    <Th field="employeeName" label="Executive" />
                     <th className={TH}>Type</th>
                     <Th field="status" label="Status" />
                     <Th field="points" label="Points" />
@@ -152,98 +152,42 @@ export default function SubmissionsPage() {
                     const isGroup = m.type === MEETING_TYPES.GROUP;
                     const isDirectConversion = m.type === MEETING_TYPES.DIRECT_CONVERSION;
                     const title = isGroup ? m.group?.name : isDirectConversion ? m.directConversion?.name : m.customer?.name;
-                    const expanded = expandedId === m.meetingId;
                     return (
-                      <Fragment key={m.meetingId}>
-                        <tr
-                          className="hover:bg-surface-2 cursor-pointer last:[&>td]:border-b-0"
-                          onClick={() => setExpandedId(expanded ? null : m.meetingId)}
-                        >
-                          <td className={`${TD} whitespace-nowrap`}>
-                            <div>{fmtDate(m.createdAt)}</div>
-                            <div className="text-xs text-muted">{fmtTime(m.createdAt)}</div>
-                          </td>
-                          <td className={TD}>
-                            <div className="font-semibold text-white">{m.employeeName}</div>
-                            <div className="text-xs text-muted">{title || '—'}</div>
-                          </td>
-                          <td className={TD}>
-                            <span
-                              className={`text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${
-                                isGroup ? 'bg-success-soft text-success' : isDirectConversion ? 'bg-info/15 text-info' : 'bg-primary-soft text-primary'
-                              }`}
-                            >
-                              {isGroup ? 'Group' : isDirectConversion ? 'Direct conversion' : '1-to-1'}
-                            </span>
-                          </td>
-                          <td className={TD}><Badge status={m.status} /></td>
-                          <td className={TD}>
-                            {m.status === MEETING_STATUS.APPROVED ? (
-                              <span className="font-bold text-success">+{m.points?.awarded ?? 0}</span>
-                            ) : (
-                              <span className="text-muted">—</span>
-                            )}
-                          </td>
-                          <td className={`${TD} text-muted`}>
-                            <Icon name="arrowRight" size={14} className={`transition-transform ${expanded ? 'rotate-90' : ''}`} />
-                          </td>
-                        </tr>
-                        {expanded && (
-                          <tr className="bg-surface-2/60">
-                            <td colSpan={6} className="px-3.5 py-4 border-b border-border">
-                              <div className="grid grid-cols-[auto_1fr] gap-5">
-                                <div className="flex gap-2">
-                                  {m.photo?.url && (
-                                    <img
-                                      src={assetUrl(m.photo.url)}
-                                      alt="Meeting proof"
-                                      className="w-28 h-28 rounded-[9px] object-cover border border-border"
-                                    />
-                                  )}
-                                  {isDirectConversion && m.directConversion?.screenshot?.url && (
-                                    <img
-                                      src={assetUrl(m.directConversion.screenshot.url)}
-                                      alt="Screenshot"
-                                      className="w-28 h-28 rounded-[9px] object-cover border border-border"
-                                    />
-                                  )}
-                                </div>
-                                <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-[13px]">
-                                  {isGroup ? (
-                                    <div><span className="text-muted">Attendees:</span> {m.group?.attendees ?? '—'}</div>
-                                  ) : isDirectConversion ? (
-                                    <>
-                                      <div><span className="text-muted">Business centre:</span> {m.directConversion?.businessCentre || '—'}</div>
-                                      <div><span className="text-muted">Nexus mail ID:</span> {m.directConversion?.nexusMailId || '—'}</div>
-                                      <div><span className="text-muted">Phone:</span> {m.directConversion?.phone || '—'}</div>
-                                      <div><span className="text-muted">Stacking type:</span> {m.directConversion?.stakingType || '—'}</div>
-                                      <div className="col-span-2"><span className="text-muted">Staking volume:</span> {m.directConversion?.stakingVolume?.toLocaleString() ?? '—'}</div>
-                                    </>
-                                  ) : (
-                                    <div><span className="text-muted">Phone:</span> {m.customer?.phone || '—'}</div>
-                                  )}
-                                  {m.isPremiumClient && <div className="text-warning font-semibold">★ Premium client</div>}
-                                  {!isDirectConversion && (
-                                    <>
-                                      <div className="col-span-2"><span className="text-muted">Purpose:</span> {m.business?.purpose || '—'}</div>
-                                      <div className="col-span-2"><span className="text-muted">Outcome:</span> {m.business?.outcome || '—'}</div>
-                                      {m.business?.remarks && (
-                                        <div className="col-span-2"><span className="text-muted">Remarks:</span> {m.business.remarks}</div>
-                                      )}
-                                    </>
-                                  )}
-                                  {m.review?.qualityScore && (
-                                    <div className="col-span-2 text-primary">Quality: {'★'.repeat(m.review.qualityScore)}{'★'.repeat(5 - m.review.qualityScore).split('').map((_, i) => <span key={i} className="text-muted/40">★</span>)}</div>
-                                  )}
-                                  {m.review?.reason && (
-                                    <div className="col-span-2 text-danger">Reason: {m.review.reason}</div>
-                                  )}
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </Fragment>
+                      <tr
+                        key={m.meetingId}
+                        className="hover:bg-surface-2 cursor-pointer last:[&>td]:border-b-0"
+                        onClick={() => navigate(`/submissions/${m.meetingId}`)}
+                        title="Open submission"
+                      >
+                        <td className={`${TD} whitespace-nowrap`}>
+                          <div>{fmtDate(m.createdAt)}</div>
+                          <div className="text-xs text-muted">{fmtTime(m.createdAt)}</div>
+                        </td>
+                        <td className={TD}>
+                          <div className="font-semibold text-white">{m.employeeName}</div>
+                          <div className="text-xs text-muted">{title || '—'}</div>
+                        </td>
+                        <td className={TD}>
+                          <span
+                            className={`text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${
+                              isGroup ? 'bg-success-soft text-success' : isDirectConversion ? 'bg-info/15 text-info' : 'bg-primary-soft text-primary'
+                            }`}
+                          >
+                            {isGroup ? 'Group' : isDirectConversion ? 'Direct conversion' : '1-to-1'}
+                          </span>
+                        </td>
+                        <td className={TD}><Badge status={m.status} /></td>
+                        <td className={TD}>
+                          {m.status === MEETING_STATUS.APPROVED ? (
+                            <span className="font-bold text-success">+{m.points?.awarded ?? 0}</span>
+                          ) : (
+                            <span className="text-muted">—</span>
+                          )}
+                        </td>
+                        <td className={`${TD} text-muted`}>
+                          <Icon name="arrowRight" size={14} />
+                        </td>
+                      </tr>
                     );
                   })}
                 </tbody>

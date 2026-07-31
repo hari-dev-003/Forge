@@ -5,8 +5,9 @@ import { logout } from '../../features/auth/authSlice.js';
 import { usePwaInstall } from '../../hooks/usePwaInstall.js';
 import { Button } from '../ui/index.jsx';
 import Icon from '../ui/Icon.jsx';
+import { LogoMark } from '../brand/Logo.jsx';
 import AnnouncementPopup from '../announcements/AnnouncementPopup.jsx';
-import { ROLES } from '../../constants.js';
+import { ROLES, roleLabel } from '../../constants.js';
 
 const NAV = [
   { to: '/dashboard', label: 'Dashboard', icon: 'grid', end: true, roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.USER] },
@@ -56,9 +57,7 @@ export default function AppLayout() {
       >
         <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-primary/4 blur-3xl pointer-events-none" />
         <div className="relative flex items-center gap-3 px-5 pt-6 pb-6 border-b border-border/40">
-          <span className="w-9 h-9 rounded-[9px] bg-primary text-on-primary grid place-items-center font-extrabold text-sm">
-            F
-          </span>
+          <LogoMark className="w-9 h-9 object-contain shrink-0" />
           <span className="text-lg font-semibold text-white font-heading tracking-tight">
             For<b className="text-primary font-extrabold">ge</b>
           </span>
@@ -74,7 +73,7 @@ export default function AppLayout() {
         </nav>
 
         <div className="px-5 py-4 border-t border-border/40">
-          <div className="text-[11px] tracking-widest uppercase text-muted font-bold">{user?.role}</div>
+          <div className="text-[11px] tracking-widest uppercase text-muted font-bold">{roleLabel(user?.role)}</div>
         </div>
       </aside>
 

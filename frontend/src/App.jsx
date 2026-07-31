@@ -17,7 +17,9 @@ import LeaderboardPage from './pages/LeaderboardPage.jsx';
 import TeamPage from './pages/TeamPage.jsx';
 import PointsConfigPage from './pages/PointsConfigPage.jsx';
 import AuditLogPage from './pages/AuditLogPage.jsx';
+import ManagerTeamPage from './pages/ManagerTeamPage.jsx';
 import SubmissionsPage from './pages/SubmissionsPage.jsx';
+import SubmissionDetailPage from './pages/SubmissionDetailPage.jsx';
 import AnnouncementsPage from './pages/AnnouncementsPage.jsx';
 import AnnouncementDetailPage from './pages/AnnouncementDetailPage.jsx';
 import AnnouncementAdminPage from './pages/AnnouncementAdminPage.jsx';
@@ -54,6 +56,7 @@ export default function App() {
             <Route element={<ProtectedRoute roles={[ROLES.MANAGER, ROLES.ADMIN]} />}>
               <Route path="review" element={<ReviewQueuePage />} />
               <Route path="submissions" element={<SubmissionsPage />} />
+              <Route path="submissions/:id" element={<SubmissionDetailPage />} />
               <Route path="team" element={<TeamPage />} />
             </Route>
 
@@ -61,6 +64,8 @@ export default function App() {
               <Route path="config" element={<PointsConfigPage />} />
               <Route path="audit" element={<AuditLogPage />} />
               <Route path="announcements/manage" element={<AnnouncementAdminPage />} />
+              {/* Drill-down into one manager's executives — admin only. */}
+              <Route path="team/:managerId" element={<ManagerTeamPage />} />
             </Route>
           </Route>
         </Route>
