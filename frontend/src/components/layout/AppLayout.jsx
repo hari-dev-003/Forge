@@ -5,6 +5,7 @@ import { logout } from '../../features/auth/authSlice.js';
 import { usePwaInstall } from '../../hooks/usePwaInstall.js';
 import { Button } from '../ui/index.jsx';
 import Icon from '../ui/Icon.jsx';
+import AnnouncementPopup from '../announcements/AnnouncementPopup.jsx';
 import { ROLES } from '../../constants.js';
 
 const NAV = [
@@ -15,6 +16,8 @@ const NAV = [
   { to: '/submissions', label: 'Submissions', icon: 'layers', roles: [ROLES.MANAGER, ROLES.ADMIN] },
   { to: '/leaderboard', label: 'Leaderboard', icon: 'trophy', roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.USER] },
   { to: '/team', label: 'Team', icon: 'users', roles: [ROLES.MANAGER, ROLES.ADMIN] },
+  { to: '/announcements', label: 'Information & News', icon: 'megaphone', end: true, roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.USER] },
+  { to: '/announcements/manage', label: 'Manage Announcements', icon: 'edit', roles: [ROLES.ADMIN] },
   { to: '/config', label: 'Points Rules', icon: 'sliders', roles: [ROLES.ADMIN] },
   { to: '/audit', label: 'Audit Log', icon: 'history', roles: [ROLES.ADMIN] },
 ];
@@ -110,6 +113,8 @@ export default function AppLayout() {
           <Outlet />
         </main>
       </div>
+
+      <AnnouncementPopup />
     </div>
   );
 }

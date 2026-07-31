@@ -25,4 +25,34 @@ export const STATUS_LABEL = {
   MODIFICATION_REQUESTED: 'Needs changes',
 };
 
+export const ANNOUNCEMENT_TYPES = { IMAGE: 'IMAGE', TEXT: 'TEXT', DOCUMENT: 'DOCUMENT' };
+
+export const ANNOUNCEMENT_CATEGORIES = {
+  GENERAL: 'GENERAL',
+  EVENT: 'EVENT',
+  CIRCULAR: 'CIRCULAR',
+  TRAINING: 'TRAINING',
+  WORKSHOP: 'WORKSHOP',
+  MEETING: 'MEETING',
+  EMERGENCY: 'EMERGENCY',
+  NEWS: 'NEWS',
+};
+
+export const ANNOUNCEMENT_CATEGORY_LABEL = {
+  GENERAL: 'General',
+  EVENT: 'Event',
+  CIRCULAR: 'Circular',
+  TRAINING: 'Training',
+  WORKSHOP: 'Workshop',
+  MEETING: 'Meeting',
+  EMERGENCY: 'Emergency',
+  NEWS: 'News',
+};
+
+export const ANNOUNCEMENT_PRIORITY = { NORMAL: 'NORMAL', IMPORTANT: 'IMPORTANT', URGENT: 'URGENT' };
+
+export const ANNOUNCEMENT_STATUS = { DRAFT: 'DRAFT', SCHEDULED: 'SCHEDULED', PUBLISHED: 'PUBLISHED' };
+
+export const ANNOUNCEMENT_ANIMATION = { NONE: 'NONE', POPUP: 'POPUP' };
+
 export const TOKEN_KEY = 'ff_token';

@@ -8,6 +8,7 @@ import dashboardRoutes from './dashboardRoutes.js';
 import uploadRoutes from './uploadRoutes.js';
 import configRoutes from './configRoutes.js';
 import auditRoutes from './auditRoutes.js';
+import announcementRoutes from './announcementRoutes.js';
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use('/dashboard', dashboardRoutes);
 router.use('/uploads', uploadRoutes);
 router.use('/config', configRoutes);
 router.use('/audit', auditRoutes);
+router.use('/announcements', announcementRoutes);
 
 export default router;

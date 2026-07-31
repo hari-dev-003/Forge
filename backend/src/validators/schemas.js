@@ -4,6 +4,11 @@ import {
   MEETING_STATUS,
   INTEREST_LEVELS,
   LEADERBOARD_SCOPES,
+  ROLES,
+  ANNOUNCEMENT_TYPES,
+  ANNOUNCEMENT_CATEGORIES,
+  ANNOUNCEMENT_PRIORITY,
+  ANNOUNCEMENT_ANIMATION,
 } from '../config/constants.js';
 
 export const loginSchema = z.object({
@@ -48,6 +53,7 @@ export const updateUserSchema = z.object({
 
 export const presignSchema = z.object({
   contentType: z.string().default('image/jpeg'),
+  prefix: z.enum(['photos', 'announcements']).optional().default('photos'),
 });
 
 const oneToOne = z.object({
@@ -156,4 +162,50 @@ export const auditQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(500).optional(),
   actorId: z.string().optional(),
   action: z.string().optional(),
+});
+
+const attachmentSchema = z.object({
+  key: z.string().min(1),
+  fileName: z.string().min(1),
+  contentType: z.string().min(1),
+  sizeBytes: z.number().int().min(0).optional(),
+});
+
+export const createAnnouncementSchema = z.object({
+  title: z.string().min(2).max(200),
+  category: z.enum(Object.values(ANNOUNCEMENT_CATEGORIES)),
+  type: z.enum(Object.values(ANNOUNCEMENT_TYPES)),
+  description: z.string().max(20000).optional().default(''),
+  attachments: z.array(attachmentSchema).max(10).optional().default([]),
+  targetRoles: z.array(z.enum([ROLES.MANAGER, ROLES.USER])).optional(),
+  priority: z.enum(Object.values(ANNOUNCEMENT_PRIORITY)).optional(),
+  isPinned: z.boolean().optional().default(false),
+  // Admin's intent, not the stored status — announcementService maps this to
+  // DRAFT/PUBLISHED/SCHEDULED (+ validates SCHEDULE requires a publishDate).
+  status: z.enum(['DRAFT', 'PUBLISH_NOW', 'SCHEDULE']).optional().default('PUBLISH_NOW'),
+  publishDate: z.string().datetime().optional(),
+  expiryDate: z.string().datetime().optional().nullable(),
+  animationType: z.enum(Object.values(ANNOUNCEMENT_ANIMATION)).optional(),
+});
+
+export const updateAnnouncementSchema = z.object({
+  title: z.string().min(2).max(200).optional(),
+  category: z.enum(Object.values(ANNOUNCEMENT_CATEGORIES)).optional(),
+  type: z.enum(Object.values(ANNOUNCEMENT_TYPES)).optional(),
+  description: z.string().max(20000).optional(),
+  attachments: z.array(attachmentSchema).max(10).optional(),
+  targetRoles: z.array(z.enum([ROLES.MANAGER, ROLES.USER])).optional(),
+  priority: z.enum(Object.values(ANNOUNCEMENT_PRIORITY)).optional(),
+  isPinned: z.boolean().optional(),
+  status: z.enum(['DRAFT', 'PUBLISHED', 'SCHEDULED']).optional(),
+  publishDate: z.string().datetime().optional(),
+  expiryDate: z.string().datetime().optional().nullable(),
+  animationType: z.enum(Object.values(ANNOUNCEMENT_ANIMATION)).optional(),
+});
+
+export const announcementQuerySchema = z.object({
+  category: z.enum(Object.values(ANNOUNCEMENT_CATEGORIES)).optional(),
+  priority: z.enum(Object.values(ANNOUNCEMENT_PRIORITY)).optional(),
+  search: z.string().max(200).optional(),
+  sort: z.enum(['latest', 'oldest', 'mostViewed']).optional().default('latest'),
 });

@@ -18,6 +18,9 @@ import TeamPage from './pages/TeamPage.jsx';
 import PointsConfigPage from './pages/PointsConfigPage.jsx';
 import AuditLogPage from './pages/AuditLogPage.jsx';
 import SubmissionsPage from './pages/SubmissionsPage.jsx';
+import AnnouncementsPage from './pages/AnnouncementsPage.jsx';
+import AnnouncementDetailPage from './pages/AnnouncementDetailPage.jsx';
+import AnnouncementAdminPage from './pages/AnnouncementAdminPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 
 export default function App() {
@@ -40,6 +43,8 @@ export default function App() {
           <Route element={<AppLayout />}>
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="leaderboard" element={<LeaderboardPage />} />
+            <Route path="announcements" element={<AnnouncementsPage />} />
+            <Route path="announcements/:id" element={<AnnouncementDetailPage />} />
 
             <Route element={<ProtectedRoute roles={[ROLES.USER]} />}>
               <Route path="submit" element={<SubmitMeetingPage />} />
@@ -55,6 +60,7 @@ export default function App() {
             <Route element={<ProtectedRoute roles={[ROLES.ADMIN]} />}>
               <Route path="config" element={<PointsConfigPage />} />
               <Route path="audit" element={<AuditLogPage />} />
+              <Route path="announcements/manage" element={<AnnouncementAdminPage />} />
             </Route>
           </Route>
         </Route>

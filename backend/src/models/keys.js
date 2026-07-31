@@ -6,12 +6,14 @@
 // GSI2 (gsi2pk/gsi2sk):  manager review queue by status
 //
 // Entities
-//   User      pk=USER#<id>            sk=PROFILE
-//   Meeting   pk=MEETING#<id>         sk=META
-//   Points    pk=USER#<id>            sk=POINTS#<ts>#<meetingId>
-//   LB total  pk=LB#<scope>#<period>  sk=USER#<id>
-//   Config    pk=CONFIG               sk=<name>
-//   Audit     pk=AUDIT#<day>          sk=<ts>#<id>
+//   User          pk=USER#<id>            sk=PROFILE
+//   Meeting       pk=MEETING#<id>         sk=META
+//   Points        pk=USER#<id>            sk=POINTS#<ts>#<meetingId>
+//   LB total      pk=LB#<scope>#<period>  sk=USER#<id>
+//   Config        pk=CONFIG               sk=<name>
+//   Audit         pk=AUDIT#<day>          sk=<ts>#<id>
+//   Announcement  pk=ANNOUNCEMENT#<id>    sk=META
+//   Announ. read  pk=ANNOUNCEMENT#<id>    sk=READ#<userId>
 
 export const K = {
   // ── Users ──
@@ -49,6 +51,16 @@ export const K = {
   // ── Audit ──
   auditPk: (day) => `AUDIT#${day}`,
   auditSk: (ts, id) => `${ts}#${id}`,
+
+  // ── Announcements ──
+  announcementPk: (id) => `ANNOUNCEMENT#${id}`,
+  announcementSk: () => 'META',
+  // global feed, newest-first: gsi1pk='ANN#FEED', gsi1sk=<publishDate>#<id>
+  // (pinning is re-sorted in-app on top of this — see announcementRepo.listFeed)
+  announcementFeedGsiPk: () => 'ANN#FEED',
+  announcementFeedGsiSk: (publishDate, id) => `${publishDate}#${id}`,
+  // per-user read receipt, same base pk as the announcement itself
+  announcementReadSk: (userId) => `READ#${userId}`,
 };
 
 export default K;

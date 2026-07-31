@@ -8,6 +8,7 @@ import dashboardReducer from '../features/dashboard/dashboardSlice.js';
 import usersReducer from '../features/users/usersSlice.js';
 import configReducer from '../features/config/configSlice.js';
 import auditReducer from '../features/audit/auditSlice.js';
+import announcementsReducer from '../features/announcements/announcementsSlice.js';
 import uiReducer from '../features/ui/uiSlice.js';
 
 export const store = configureStore({
@@ -21,6 +22,7 @@ export const store = configureStore({
     users: usersReducer,
     config: configReducer,
     audit: auditReducer,
+    announcements: announcementsReducer,
     ui: uiReducer,
   },
 });

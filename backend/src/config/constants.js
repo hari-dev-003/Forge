@@ -36,6 +36,45 @@ export const LEADERBOARD_SCOPES = Object.freeze({
   MONTHLY: 'MONTHLY',
 });
 
+export const ANNOUNCEMENT_TYPES = Object.freeze({
+  IMAGE: 'IMAGE',
+  TEXT: 'TEXT',
+  DOCUMENT: 'DOCUMENT',
+});
+
+export const ANNOUNCEMENT_CATEGORIES = Object.freeze({
+  GENERAL: 'GENERAL',
+  EVENT: 'EVENT',
+  CIRCULAR: 'CIRCULAR',
+  TRAINING: 'TRAINING',
+  WORKSHOP: 'WORKSHOP',
+  MEETING: 'MEETING',
+  EMERGENCY: 'EMERGENCY',
+  NEWS: 'NEWS',
+});
+
+export const ANNOUNCEMENT_PRIORITY = Object.freeze({
+  NORMAL: 'NORMAL',
+  IMPORTANT: 'IMPORTANT',
+  URGENT: 'URGENT',
+});
+
+// DRAFT is never shown to Manager/User. SCHEDULED/PUBLISHED visibility is
+// further gated at read time by publishDate/expiryDate (see announcementService
+// — lazy evaluation, no cron/background job exists in this codebase).
+export const ANNOUNCEMENT_STATUS = Object.freeze({
+  DRAFT: 'DRAFT',
+  SCHEDULED: 'SCHEDULED',
+  PUBLISHED: 'PUBLISHED',
+});
+
+// Only POPUP is actually implemented in Phase 1 (Slide Panel / Login Splash
+// are documented roadmap, not built) — NONE is the default/no-animation case.
+export const ANNOUNCEMENT_ANIMATION = Object.freeze({
+  NONE: 'NONE',
+  POPUP: 'POPUP',
+});
+
 // Default, admin-editable points rules (see config/POINTS_RULES item).
 export const DEFAULT_POINTS_RULES = Object.freeze({
   version: 'v1',

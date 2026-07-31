@@ -6,8 +6,29 @@ import express from 'express';
 import { env, awsClientConfig } from '../config/env.js';
 import { newId, monthKey } from '../lib/ids.js';
 
-const extFromContentType = (ct = '') =>
-  ct.includes('png') ? 'png' : ct.includes('webp') ? 'webp' : 'jpg';
+// Meeting/screenshot photos only ever needed jpg/png/webp; announcement
+// attachments extend this to common office-document formats.
+const EXT_BY_CONTENT_TYPE = {
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/jpeg': 'jpg',
+  'application/pdf': 'pdf',
+  'application/vnd.ms-powerpoint': 'ppt',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx',
+  'application/msword': 'doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+  'application/vnd.ms-excel': 'xls',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+  'application/zip': 'zip',
+  'application/x-zip-compressed': 'zip',
+};
+
+const extFromContentType = (ct = '') => {
+  if (EXT_BY_CONTENT_TYPE[ct]) return EXT_BY_CONTENT_TYPE[ct];
+  if (ct.includes('png')) return 'png';
+  if (ct.includes('webp')) return 'webp';
+  return 'jpg';
+};
 
 export function createS3Storage() {
   const client = new S3Client(awsClientConfig());
@@ -15,10 +36,11 @@ export function createS3Storage() {
   return {
     provider: 's3',
 
-    // Presigned PUT so the browser uploads the photo directly to the (private) bucket.
-    async presignUpload({ contentType = 'image/jpeg' }) {
+    // Presigned PUT so the browser uploads the file directly to the (private)
+    // bucket. `prefix` scopes the key path (default 'photos', e.g. 'announcements').
+    async presignUpload({ contentType = 'image/jpeg', prefix = 'photos' }) {
       const [yyyy, mm] = monthKey().split('-');
-      const key = `photos/${yyyy}/${mm}/${newId()}.${extFromContentType(contentType)}`;
+      const key = `${prefix}/${yyyy}/${mm}/${newId()}.${extFromContentType(contentType)}`;
       const cmd = new PutObjectCommand({
         Bucket: env.s3Bucket,
         Key: key,
