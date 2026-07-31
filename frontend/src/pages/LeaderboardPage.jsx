@@ -48,7 +48,7 @@ export default function LeaderboardPage() {
             {SCOPES.map((s) => (
               <button
                 key={s.key}
-                className={`px-3 py-1.75 text-sm rounded-control font-semibold cursor-pointer transition-all duration-200 ${
+                className={`px-3 py-1.75 text-sm rounded-full font-semibold cursor-pointer transition-all duration-200 ${
                   scope === s.key
                     ? 'bg-primary text-on-primary font-bold'
                     : 'bg-transparent text-muted border border-border hover:bg-surface-2 hover:text-white'

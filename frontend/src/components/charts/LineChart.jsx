@@ -20,7 +20,12 @@ export default function LineChart({ data = [], height = 200 }) {
         symbolSize: 6,
         lineStyle: { color: '#eeb31c', width: 2.5 },
         itemStyle: { color: '#eeb31c' },
-        areaStyle: { color: 'rgba(238,179,28,0.15)' },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(238,179,28,0.35)' },
+            { offset: 1, color: 'rgba(238,179,28,0)' },
+          ]),
+        },
       },
     ],
   };

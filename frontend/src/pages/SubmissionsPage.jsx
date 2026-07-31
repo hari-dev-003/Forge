@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { fetchSubmissions } from '../features/submissions/submissionsSlice.js';
 import { fetchUsers } from '../features/users/usersSlice.js';
+import { assetUrl } from '../api/client.js';
 import { Card, Button, Field, Input, Select, Badge, Skeleton, EmptyState, PageHeader } from '../components/ui/index.jsx';
 import Reveal, { STAGGER } from '../components/ui/Reveal.jsx';
 import Icon from '../components/ui/Icon.jsx';
@@ -139,6 +140,7 @@ export default function SubmissionsPage() {
               <table className="w-full border-collapse text-sm">
                 <thead>
                   <tr>
+                    <th className={TH}></th>
                     <Th field="createdAt" label="Submitted" />
                     <Th field="employeeName" label="Executive" />
                     <th className={TH}>Type</th>
@@ -152,6 +154,7 @@ export default function SubmissionsPage() {
                     const isGroup = m.type === MEETING_TYPES.GROUP;
                     const isDirectConversion = m.type === MEETING_TYPES.DIRECT_CONVERSION;
                     const title = isGroup ? m.group?.name : isDirectConversion ? m.directConversion?.name : m.customer?.name;
+                    const cover = m.photos?.[0] || m.photo;
                     return (
                       <tr
                         key={m.meetingId}
@@ -159,6 +162,19 @@ export default function SubmissionsPage() {
                         onClick={() => navigate(`/submissions/${m.meetingId}`)}
                         title="Open submission"
                       >
+                        <td className={TD}>
+                          {cover ? (
+                            <img
+                              src={assetUrl(cover.url)}
+                              alt=""
+                              className="w-9 h-9 rounded-control object-cover"
+                            />
+                          ) : (
+                            <div className="w-9 h-9 rounded-control bg-surface-2 grid place-items-center text-muted/50">
+                              <Icon name="image" size={16} />
+                            </div>
+                          )}
+                        </td>
                         <td className={`${TD} whitespace-nowrap`}>
                           <div>{fmtDate(m.createdAt)}</div>
                           <div className="text-xs text-muted">{fmtTime(m.createdAt)}</div>

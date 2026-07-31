@@ -87,7 +87,11 @@ export default function MeetingCard({ meeting, showExecutive, children }) {
               <span className="inline-flex items-center gap-1.5"><Icon name="phone" size={14} />{meeting.customer.phone}</span>
             )
           )}
-          {meeting.isPremiumClient && <span className="text-warning font-semibold">★ Premium</span>}
+          {meeting.isPremiumClient && (
+            <span className="inline-flex items-center gap-1 text-warning font-semibold">
+              <Icon name="star" size={12} fill="currentColor" /> Premium
+            </span>
+          )}
           <span className="inline-flex items-center gap-1.5"><Icon name="clock" size={14} />{fmt(meeting.createdAt)}</span>
         </div>
 
@@ -98,12 +102,6 @@ export default function MeetingCard({ meeting, showExecutive, children }) {
             <div className="inline-block bg-success-soft text-success font-bold px-3 py-1 rounded-lg text-sm">
               +{meeting.points?.awarded ?? 0} pts
             </div>
-            {meeting.review?.qualityScore && (
-              <div className="inline-flex items-center gap-0.5 text-primary text-sm" title={`Quality: ${meeting.review.qualityScore}/5`}>
-                {'★'.repeat(meeting.review.qualityScore)}
-                <span className="text-muted/40">{'★'.repeat(5 - meeting.review.qualityScore)}</span>
-              </div>
-            )}
           </div>
         )}
         {meeting.review?.reason && meeting.status !== 'APPROVED' && (

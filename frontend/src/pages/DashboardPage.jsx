@@ -208,7 +208,7 @@ export default function DashboardPage() {
     <div>
       <div className="mb-7">
         <span className="text-primary text-xs font-bold uppercase tracking-widest">Overview</span>
-        <h1 className="text-display leading-tight font-bold font-heading tracking-tight text-white mt-1">Hi {user.name.split(' ')[0]} 👋</h1>
+        <h1 className="text-display leading-tight font-bold font-heading tracking-tight text-white mt-1">Hi {user.name.split(' ')[0]}</h1>
         <p className="text-muted text-sm mt-1.5">
           {isUser
             ? "Here's your activity today."

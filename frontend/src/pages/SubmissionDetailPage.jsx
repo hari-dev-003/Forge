@@ -177,7 +177,9 @@ export default function SubmissionDetailPage() {
           title="Client details"
           actions={
             m.isPremiumClient ? (
-              <span className="text-xs font-semibold text-warning">★ Premium client</span>
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-warning">
+                <Icon name="star" size={12} fill="currentColor" /> Premium client
+              </span>
             ) : null
           }
         >
@@ -224,9 +226,6 @@ export default function SubmissionDetailPage() {
               value={m.status === MEETING_STATUS.APPROVED ? `+${m.points?.awarded ?? 0}` : null}
             />
             <Detail label="Reviewed by" value={m.review?.reviewerName} />
-            {m.review?.qualityScore ? (
-              <Detail label="Quality" value={'★'.repeat(m.review.qualityScore)} />
-            ) : null}
             {m.review?.reviewedAt ? <Detail label="Reviewed at" value={fmtDateTime(m.review.reviewedAt)} /> : null}
           </dl>
           {m.review?.reason && (

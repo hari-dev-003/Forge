@@ -1,6 +1,7 @@
 // Reusable presentational primitives — Tailwind utilities encapsulated here so
 // pages compose <Button>, <Card>, <Field> etc. without repeating class strings.
 import { STATUS_LABEL } from '../../constants.js';
+import Icon from './Icon.jsx';
 
 const BTN_BASE =
   'inline-flex items-center justify-center gap-2 rounded-control font-semibold cursor-pointer transition-all duration-300 whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed';
@@ -53,14 +54,27 @@ const STAT_ACCENT = {
   blue: 'before:bg-info',
 };
 
-export function StatCard({ label, value, sub, accent = 'indigo' }) {
+/**
+ * `trend`: optional `{ direction: 'up' | 'down', value: '12%' }` — only pass
+ * this where a real period-over-period number exists upstream; there's no
+ * fallback/placeholder math here on purpose.
+ */
+export function StatCard({ label, value, sub, accent = 'indigo', trend }) {
   return (
     <div
-      className={`glow-card relative overflow-hidden bg-surface/80 backdrop-blur-md border border-border rounded-card p-4.5 flex flex-col gap-1 shadow-card
+      className={`glow-card relative overflow-hidden bg-surface/80 backdrop-blur-md border border-border rounded-shell p-5 flex flex-col gap-1 shadow-card
         before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 ${STAT_ACCENT[accent] || STAT_ACCENT.indigo}`}
     >
-      <span className="text-xs text-muted type-label">{label}</span>
-      <span className="text-display font-semibold tracking-[-0.03em] leading-none text-white font-heading tabular">{value}</span>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs text-muted type-label">{label}</span>
+        {trend && (
+          <span className={`inline-flex items-center gap-0.5 text-xs font-bold ${trend.direction === 'down' ? 'text-danger' : 'text-success'}`}>
+            <Icon name="trendingUp" size={13} className={trend.direction === 'down' ? 'rotate-180' : ''} />
+            {trend.value}
+          </span>
+        )}
+      </div>
+      <span className="text-display-lg font-semibold tracking-[-0.03em] leading-none text-white font-heading tabular">{value}</span>
       {sub != null && <span className="text-xs text-muted">{sub}</span>}
     </div>
   );
