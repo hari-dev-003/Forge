@@ -26,8 +26,8 @@ export default function MeetingCard({ meeting, showExecutive, children }) {
   const cover = meeting.photos?.[0] || meeting.photo;
 
   return (
-    <article className="glow-card flex gap-4 bg-surface/80 backdrop-blur-md border border-border rounded-[14px] p-3.5 shadow-card">
-      <div className="relative w-24 h-24 rounded-[9px] overflow-hidden shrink-0 bg-surface-2">
+    <article className="glow-card flex gap-4 bg-surface/80 backdrop-blur-md border border-border rounded-card p-3.5 shadow-card">
+      <div className="relative w-24 h-24 rounded-control overflow-hidden shrink-0 bg-surface-2">
         {cover?.url ? (
           <img
             src={assetUrl(cover.url)}
@@ -43,7 +43,7 @@ export default function MeetingCard({ meeting, showExecutive, children }) {
         {/* A meeting can carry up to 3 proof photos; flag the extras so a
             reviewer knows to open it rather than judging by the thumbnail. */}
         {photoCount > 1 && (
-          <span className="absolute bottom-1 right-1 inline-flex items-center gap-0.5 text-[10px] font-bold text-white bg-black/70 rounded-md px-1.5 py-0.5">
+          <span className="absolute bottom-1 right-1 inline-flex items-center gap-0.5 text-2xs font-bold text-white bg-black/70 rounded-md px-1.5 py-0.5">
             <Icon name="image" size={10} /> {photoCount}
           </span>
         )}
@@ -52,7 +52,7 @@ export default function MeetingCard({ meeting, showExecutive, children }) {
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-start gap-3">
           <div>
-            <span className={`text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${tag.className}`}>
+            <span className={`text-2xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${tag.className}`}>
               {tag.label}
             </span>
             <h4 className="text-base mt-1 font-semibold">{title || 'Untitled meeting'}</h4>
@@ -60,14 +60,14 @@ export default function MeetingCard({ meeting, showExecutive, children }) {
           <div className="flex flex-col items-end gap-1.5">
             <Badge status={meeting.status} />
             {meeting.slaBreached && (
-              <span className="text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-danger-soft text-danger">
+              <span className="text-2xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-danger-soft text-danger">
                 {Math.round(meeting.ageHours)}h — overdue
               </span>
             )}
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3.5 mt-2.5 text-[13px] text-muted">
+        <div className="flex flex-wrap gap-3.5 mt-2.5 text-sm text-muted">
           {showExecutive && meeting.employeeName && (
             <span className="inline-flex items-center gap-1.5"><Icon name="user" size={14} />{meeting.employeeName}</span>
           )}
@@ -91,7 +91,7 @@ export default function MeetingCard({ meeting, showExecutive, children }) {
           <span className="inline-flex items-center gap-1.5"><Icon name="clock" size={14} />{fmt(meeting.createdAt)}</span>
         </div>
 
-        {meeting.business?.purpose && <p className="mt-2.5 text-[13px] text-ink">{meeting.business.purpose}</p>}
+        {meeting.business?.purpose && <p className="mt-2.5 text-sm text-ink">{meeting.business.purpose}</p>}
 
         {meeting.status === 'APPROVED' && (
           <div className="flex items-center gap-2 mt-2.5 flex-wrap">
@@ -107,7 +107,7 @@ export default function MeetingCard({ meeting, showExecutive, children }) {
           </div>
         )}
         {meeting.review?.reason && meeting.status !== 'APPROVED' && (
-          <div className="mt-2.5 text-[13px] text-danger">Reason: {meeting.review.reason}</div>
+          <div className="mt-2.5 text-sm text-danger">Reason: {meeting.review.reason}</div>
         )}
 
         {children && <div className="flex gap-2 mt-3.5 flex-wrap">{children}</div>}

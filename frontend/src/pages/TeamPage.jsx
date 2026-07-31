@@ -6,7 +6,7 @@ import { useUserActions } from '../features/users/useUserActions.js';
 import { pushToast } from '../features/ui/uiSlice.js';
 import { Card, Button, Field, Input, PageHeader } from '../components/ui/index.jsx';
 import PeopleTable, { RowActions } from '../components/team/PeopleTable.jsx';
-import Reveal from '../components/ui/Reveal.jsx';
+import Reveal, { STAGGER } from '../components/ui/Reveal.jsx';
 import Icon from '../components/ui/Icon.jsx';
 import { ROLES } from '../constants.js';
 
@@ -33,7 +33,7 @@ function TempPasswordBanner({ created, onDismiss }) {
   };
 
   return (
-    <div className="bg-success-soft border border-success/30 rounded-xl px-4 py-3.5 mb-5 flex items-start gap-3">
+    <div className="bg-success-soft border border-success/30 rounded-card px-4 py-3.5 mb-5 flex items-start gap-3">
       <Icon name="check" size={16} className="text-success shrink-0 mt-0.5" />
       <div className="flex-1 min-w-0">
         <p className="text-sm text-white font-semibold">
@@ -143,13 +143,13 @@ export default function TeamPage() {
         <Reveal>
           <Card title="Add a manager">
             <form onSubmit={submitManager}>
-              <div className="grid grid-cols-2 gap-4 max-[860px]:grid-cols-1">
+              <div className="grid grid-cols-2 gap-4 max-nav:grid-cols-1">
                 <Field label="Full name"><Input value={managerForm.name} onChange={setManagerField('name')} required /></Field>
                 <Field label="Email"><Input type="email" value={managerForm.email} onChange={setManagerField('email')} required /></Field>
                 <Field label="Temporary password"><Input value={managerForm.password} onChange={setManagerField('password')} minLength={8} required hint="Min 8 characters, with upper/lowercase, a number & a symbol" /></Field>
                 <Field label="City"><Input value={managerForm.city} onChange={setManagerField('city')} placeholder="Bengaluru, Chennai…" /></Field>
               </div>
-              {error && <div className="bg-danger-soft text-danger px-3 py-2.5 rounded-[9px] text-[13px] mb-4">{error}</div>}
+              {error && <div className="bg-danger-soft text-danger px-3 py-2.5 rounded-control text-sm mb-4">{error}</div>}
               <Button type="submit" loading={createStatus === 'loading'}>Create manager</Button>
             </form>
           </Card>
@@ -158,12 +158,12 @@ export default function TeamPage() {
         <Reveal>
           <Card title="Add an executive">
             <form onSubmit={submitUser}>
-              <div className="grid grid-cols-2 gap-4 max-[860px]:grid-cols-1">
+              <div className="grid grid-cols-2 gap-4 max-nav:grid-cols-1">
                 <Field label="Full name"><Input value={userForm.name} onChange={setUserField('name')} required /></Field>
                 <Field label="Email"><Input type="email" value={userForm.email} onChange={setUserField('email')} required /></Field>
                 <Field label="City"><Input value={userForm.city} onChange={setUserField('city')} placeholder="Bengaluru, Chennai…" /></Field>
               </div>
-              {error && <div className="bg-danger-soft text-danger px-3 py-2.5 rounded-[9px] text-[13px] mb-4">{error}</div>}
+              {error && <div className="bg-danger-soft text-danger px-3 py-2.5 rounded-control text-sm mb-4">{error}</div>}
               <Button type="submit" loading={createStatus === 'loading'}>Create executive</Button>
               <p className="text-xs text-muted mt-2.5">A temporary password is generated automatically — you'll get it here to share with them.</p>
             </form>
@@ -171,7 +171,7 @@ export default function TeamPage() {
         </Reveal>
       )}
 
-      <Reveal delay={80}>
+      <Reveal delay={STAGGER[1]}>
         <Card
           title={
             isAdmin
@@ -187,7 +187,7 @@ export default function TeamPage() {
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search managers by name…"
                   aria-label="Search managers by name"
-                  className="pl-9 w-64 max-[560px]:w-44"
+                  className="pl-9 w-64 max-mobile:w-44"
                 />
               </div>
             )

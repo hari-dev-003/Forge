@@ -80,7 +80,7 @@ export default function AnnouncementPopup() {
       aria-label={candidate.title}
     >
       <div
-        className={`relative w-full max-w-105 bg-surface border border-border rounded-[16px] shadow-card p-6 transition-all duration-200 ${
+        className={`relative w-full max-w-105 bg-surface border border-border rounded-popup shadow-modal p-6 transition-all duration-200 ${
           visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
         }`}
       >
@@ -93,7 +93,7 @@ export default function AnnouncementPopup() {
           <Icon name="x" size={18} />
         </button>
 
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md bg-danger-soft text-danger mb-3">
+        <span className="inline-flex items-center gap-1.5 text-2xs font-bold uppercase tracking-widest px-2 py-0.5 rounded-md bg-danger-soft text-danger mb-3">
           <Icon name="alertTriangle" size={12} /> {candidate.priority}
         </span>
         <h2 className="text-xl font-bold font-heading text-white">{candidate.title}</h2>

@@ -31,9 +31,9 @@ export default function AnnouncementCard({ announcement: a, featured = false }) 
 
   return (
     <article
-      className={`glow-card bg-surface/80 backdrop-blur-md border rounded-[14px] overflow-hidden shadow-card ${
+      className={`glow-card bg-surface/80 backdrop-blur-md border rounded-card overflow-hidden shadow-card ${
         featured
-          ? 'flex w-full border-primary/35 max-[720px]:flex-col'
+          ? 'flex w-full border-primary/35 max-tablet:flex-col'
           : 'flex flex-col border-border'
       }`}
     >
@@ -43,7 +43,7 @@ export default function AnnouncementCard({ announcement: a, featured = false }) 
           alt=""
           className={
             featured
-              ? 'w-64 shrink-0 self-stretch object-cover max-[720px]:w-full max-[720px]:h-40'
+              ? 'w-64 shrink-0 self-stretch object-cover max-tablet:w-full max-tablet:h-40'
               : 'w-full h-36 object-cover'
           }
         />
@@ -52,16 +52,16 @@ export default function AnnouncementCard({ announcement: a, featured = false }) 
         <div className="flex items-center justify-between gap-2 mb-2">
           <div className="flex items-center gap-1.5">
             {a.isPinned && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md bg-primary text-on-primary">
+              <span className="inline-flex items-center gap-1 text-2xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-md bg-primary text-on-primary">
                 <Icon name="pin" size={11} /> Pinned
               </span>
             )}
-            <span className="text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md bg-primary-soft text-primary">
+            <span className="text-2xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-md bg-primary-soft text-primary">
               {ANNOUNCEMENT_CATEGORY_LABEL[a.category] || a.category}
             </span>
           </div>
           {a.priority !== 'NORMAL' && (
-            <span className={`text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${PRIORITY_TONE[a.priority]}`}>
+            <span className={`text-2xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${PRIORITY_TONE[a.priority]}`}>
               {a.priority}
             </span>
           )}
@@ -69,7 +69,7 @@ export default function AnnouncementCard({ announcement: a, featured = false }) 
 
         <h3 className={`font-semibold text-white leading-snug ${featured ? 'text-lg' : 'text-base'}`}>{a.title}</h3>
         <p className="text-xs text-muted mt-1">{fmtDate(a.publishDate)}</p>
-        {summary && <p className="text-[13px] text-muted mt-2 flex-1">{summary}{clamped ? '…' : ''}</p>}
+        {summary && <p className="text-sm text-muted mt-2 flex-1">{summary}{clamped ? '…' : ''}</p>}
 
         {firstDoc && (
           <div className="flex items-center gap-1.5 mt-2.5 text-xs text-muted">

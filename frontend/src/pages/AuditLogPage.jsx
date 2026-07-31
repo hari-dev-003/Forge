@@ -15,7 +15,7 @@ function MetaChips({ meta }) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {entries.map(([key, value]) => (
-        <span key={key} className="inline-flex items-center gap-1 bg-surface-2 border border-border rounded px-1.5 py-0.5 text-[11px] text-muted whitespace-nowrap">
+        <span key={key} className="inline-flex items-center gap-1 bg-surface-2 border border-border rounded px-1.5 py-0.5 text-2xs text-muted whitespace-nowrap">
           <span className="text-muted/70">{key}:</span>
           <span className="text-ink">{typeof value === 'object' ? JSON.stringify(value) : String(value)}</span>
         </span>

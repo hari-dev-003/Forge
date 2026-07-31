@@ -3,9 +3,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchPointsRules, savePointsRules } from '../features/config/configSlice.js';
 import { pushToast } from '../features/ui/uiSlice.js';
 import { Card, Button, Field, Input, Skeleton, PageHeader } from '../components/ui/index.jsx';
-import Reveal from '../components/ui/Reveal.jsx';
+import Reveal, { STAGGER } from '../components/ui/Reveal.jsx';
 
-const GRID_2 = 'grid grid-cols-2 gap-4 max-[860px]:grid-cols-1';
+const GRID_2 = 'grid grid-cols-2 gap-4 max-nav:grid-cols-1';
 
 function ConfigSkeleton() {
   return (
@@ -68,7 +68,7 @@ export default function PointsConfigPage() {
         <>
           <Reveal>
             <Card title="Base points">
-              <p className="text-[13px] text-muted mb-4 -mt-1">
+              <p className="text-sm text-muted mb-4 -mt-1">
                 What an approved meeting is worth, by category. These values decide the score — a meeting
                 earns its category's base points, plus the premium client bonus below when it applies.
               </p>
@@ -80,7 +80,7 @@ export default function PointsConfigPage() {
             </Card>
           </Reveal>
 
-          <Reveal delay={80}>
+          <Reveal delay={STAGGER[1]}>
             <Card title="Bonuses">
               <div className={GRID_2}>
                 <Field

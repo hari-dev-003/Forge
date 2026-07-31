@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchSubmissions } from '../features/submissions/submissionsSlice.js';
 import { fetchUsers } from '../features/users/usersSlice.js';
 import { Card, Button, Field, Input, Select, Badge, Skeleton, EmptyState, PageHeader } from '../components/ui/index.jsx';
-import Reveal from '../components/ui/Reveal.jsx';
+import Reveal, { STAGGER } from '../components/ui/Reveal.jsx';
 import Icon from '../components/ui/Icon.jsx';
 import { MEETING_TYPES, MEETING_STATUS, STATUS_LABEL, ROLES } from '../constants.js';
 
@@ -113,7 +113,7 @@ export default function SubmissionsPage() {
         </Card>
       </Reveal>
 
-      <Reveal delay={80}>
+      <Reveal delay={STAGGER[1]}>
         <Card
           title={loading ? 'Loading…' : `${sorted.length} submission${sorted.length === 1 ? '' : 's'}`}
           actions={
@@ -169,7 +169,7 @@ export default function SubmissionsPage() {
                         </td>
                         <td className={TD}>
                           <span
-                            className={`text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${
+                            className={`text-2xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${
                               isGroup ? 'bg-success-soft text-success' : isDirectConversion ? 'bg-info/15 text-info' : 'bg-primary-soft text-primary'
                             }`}
                           >

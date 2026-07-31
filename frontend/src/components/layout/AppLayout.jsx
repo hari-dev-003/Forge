@@ -24,7 +24,7 @@ const NAV = [
 ];
 
 const navItemClass = ({ isActive }) =>
-  `flex items-center gap-3 px-3 py-2.5 rounded-[9px] text-sm font-medium transition-all duration-200 ${
+  `flex items-center gap-3 px-3 py-2.5 rounded-control text-sm font-medium transition-all duration-200 ${
     isActive
       ? 'bg-primary text-on-primary font-bold'
       : 'text-muted hover:bg-white/5 hover:text-white'
@@ -52,7 +52,7 @@ export default function AppLayout() {
 
       <aside
         className={`w-61 bg-sidebar/95 backdrop-blur-md border-r border-border text-muted flex flex-col fixed inset-y-0 left-0 z-40 pt-[env(safe-area-inset-top)] transition-transform duration-300 overflow-hidden ${
-          open ? 'max-[860px]:translate-x-0' : 'max-[860px]:-translate-x-full'
+          open ? 'max-nav:translate-x-0' : 'max-nav:-translate-x-full'
         }`}
       >
         <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-primary/4 blur-3xl pointer-events-none" />
@@ -73,15 +73,15 @@ export default function AppLayout() {
         </nav>
 
         <div className="px-5 py-4 border-t border-border/40">
-          <div className="text-[11px] tracking-widest uppercase text-muted font-bold">{roleLabel(user?.role)}</div>
+          <div className="text-2xs tracking-widest uppercase text-muted font-bold">{roleLabel(user?.role)}</div>
         </div>
       </aside>
 
-      <div className="flex-1 ml-61 flex flex-col min-w-0 max-[860px]:ml-0 relative z-10">
+      <div className="flex-1 ml-61 flex flex-col min-w-0 max-nav:ml-0 relative z-10">
         <header className="relative h-[calc(64px+env(safe-area-inset-top))] bg-surface/90 backdrop-blur-md border-b border-border flex items-center gap-3 px-6 pt-[env(safe-area-inset-top)] sticky top-0 z-30">
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
           <button
-            className="hidden max-[860px]:grid place-items-center w-11 h-11 -ml-2 bg-transparent border-0 cursor-pointer text-muted hover:text-white"
+            className="hidden max-nav:grid place-items-center w-11 h-11 -ml-2 bg-transparent border-0 cursor-pointer text-muted hover:text-white"
             onClick={() => setOpen((v) => !v)}
             aria-label="Toggle navigation menu"
             aria-expanded={open}
@@ -98,7 +98,7 @@ export default function AppLayout() {
             <div className="w-9 h-9 rounded-full bg-primary-soft text-primary border border-primary/30 grid place-items-center font-bold font-heading">
               {(user?.name || '?').charAt(0).toUpperCase()}
             </div>
-            <div className="flex flex-col leading-tight max-[560px]:hidden">
+            <div className="flex flex-col leading-tight max-mobile:hidden">
               <span className="text-sm font-semibold text-white">{user?.name}</span>
               <span className="text-xs text-muted">{user?.city || user?.email}</span>
             </div>

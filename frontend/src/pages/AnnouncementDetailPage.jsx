@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useParams, Link } from 'react-router-dom';
 import { fetchAnnouncement, markAnnouncementRead, clearCurrent } from '../features/announcements/announcementsSlice.js';
 import { Card, Button, Spinner, PageHeader } from '../components/ui/index.jsx';
-import Reveal from '../components/ui/Reveal.jsx';
+import Reveal, { STAGGER } from '../components/ui/Reveal.jsx';
 import Icon from '../components/ui/Icon.jsx';
 import AnnouncementCard from '../components/announcements/AnnouncementCard.jsx';
 import ImageLightbox from '../components/announcements/ImageLightbox.jsx';
@@ -57,7 +57,7 @@ export default function AnnouncementDetailPage() {
               type="button"
               onClick={() => setPreviewIndex(0)}
               aria-label={`Preview ${hero.fileName}`}
-              className="group relative block w-full mb-5 rounded-[10px] overflow-hidden cursor-zoom-in focus-visible:outline-2 focus-visible:outline-primary"
+              className="group relative block w-full mb-5 rounded-thumb overflow-hidden cursor-zoom-in focus-visible:outline-2 focus-visible:outline-primary"
             >
               <img src={assetUrl(hero.url)} alt={hero.fileName || ''} className="w-full max-h-96 object-cover" />
               <span className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors" />
@@ -67,7 +67,7 @@ export default function AnnouncementDetailPage() {
             </button>
           )}
 
-          <div className="prose-announcement text-[15px] leading-relaxed text-ink" dangerouslySetInnerHTML={{ __html: a.description }} />
+          <div className="prose-announcement text-md leading-relaxed text-ink" dangerouslySetInnerHTML={{ __html: a.description }} />
 
           {/* Remaining photos as a thumbnail strip — each opens the same preview. */}
           {gallery.length > 0 && (
@@ -82,7 +82,7 @@ export default function AnnouncementDetailPage() {
                     type="button"
                     onClick={() => setPreviewIndex(i + 1)}
                     aria-label={`Preview ${att.fileName}`}
-                    className="group relative aspect-4/3 rounded-[9px] overflow-hidden border border-border cursor-zoom-in focus-visible:outline-2 focus-visible:outline-primary"
+                    className="group relative aspect-4/3 rounded-control overflow-hidden border border-border cursor-zoom-in focus-visible:outline-2 focus-visible:outline-primary"
                   >
                     <img
                       src={assetUrl(att.url)}
@@ -103,7 +103,7 @@ export default function AnnouncementDetailPage() {
                 <iframe
                   src={assetUrl(files[0].url)}
                   title={files[0].fileName}
-                  className="w-full h-96 rounded-[10px] border border-border mb-3"
+                  className="w-full h-96 rounded-thumb border border-border mb-3"
                 />
               )}
               <div className="flex flex-col gap-2">
@@ -114,7 +114,7 @@ export default function AnnouncementDetailPage() {
                     download={att.fileName}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2.5 bg-surface-2 border border-border rounded-[9px] px-3 py-2.5 hover:border-primary/40 transition-colors"
+                    className="flex items-center gap-2.5 bg-surface-2 border border-border rounded-control px-3 py-2.5 hover:border-primary/40 transition-colors"
                   >
                     <Icon name="fileText" size={16} className="text-muted shrink-0" />
                     <span className="flex-1 text-sm text-white truncate">{att.fileName}</span>
@@ -142,7 +142,7 @@ export default function AnnouncementDetailPage() {
       </Reveal>
 
       {related.length > 0 && (
-        <Reveal delay={80}>
+        <Reveal delay={STAGGER[1]}>
           <h4 className="text-sm font-bold uppercase tracking-wide text-muted mb-3 mt-2">Related announcements</h4>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4">
             {related.map((r) => <AnnouncementCard key={r.id} announcement={r} />)}

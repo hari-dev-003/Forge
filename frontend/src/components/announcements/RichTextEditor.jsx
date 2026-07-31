@@ -8,7 +8,7 @@ const TOOLBAR = [
 ];
 
 const BTN_CLASS =
-  'w-8 h-8 grid place-items-center rounded-[7px] text-muted hover:text-white hover:bg-surface-2 cursor-pointer transition-colors';
+  'w-8 h-8 grid place-items-center rounded-control text-muted hover:text-white hover:bg-surface-2 cursor-pointer transition-colors';
 
 /**
  * Minimal hand-rolled rich text editor (Bold/Italic/Bullet List/Link) over a
@@ -44,7 +44,7 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
   };
 
   return (
-    <div className="border border-border rounded-[9px] bg-surface-2 overflow-hidden">
+    <div className="border border-border rounded-control bg-surface-2 overflow-hidden">
       <div className="flex items-center gap-0.5 px-1.5 py-1 border-b border-border bg-surface">
         {TOOLBAR.map((t) => (
           <button

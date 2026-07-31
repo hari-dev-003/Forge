@@ -48,7 +48,7 @@ export default function LeaderboardPage() {
             {SCOPES.map((s) => (
               <button
                 key={s.key}
-                className={`px-3 py-1.75 text-[13px] rounded-[9px] font-semibold cursor-pointer transition-all duration-200 ${
+                className={`px-3 py-1.75 text-sm rounded-control font-semibold cursor-pointer transition-all duration-200 ${
                   scope === s.key
                     ? 'bg-primary text-on-primary font-bold'
                     : 'bg-transparent text-muted border border-border hover:bg-surface-2 hover:text-white'
@@ -69,7 +69,7 @@ export default function LeaderboardPage() {
           board.map((r, i) => (
             <div
               className={`flex items-center gap-4 px-4 py-3.5 border-b border-border last:border-b-0 hover:bg-white/5 transition-colors ${
-                r.userId === user.id ? 'bg-primary-soft/80 border-l-4 border-l-primary rounded-[9px]' : ''
+                r.userId === user.id ? 'bg-primary-soft/80 border-l-4 border-l-primary rounded-control' : ''
               }`}
               key={r.userId}
             >

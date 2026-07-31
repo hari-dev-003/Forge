@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { fetchSummary } from '../features/dashboard/dashboardSlice.js';
 import { Card, StatCard, Badge, Skeleton, EmptyState } from '../components/ui/index.jsx';
-import Reveal from '../components/ui/Reveal.jsx';
+import Reveal, { STAGGER } from '../components/ui/Reveal.jsx';
 import Icon from '../components/ui/Icon.jsx';
 import LineChart from '../components/charts/LineChart.jsx';
 import DonutChart from '../components/charts/DonutChart.jsx';
@@ -30,7 +30,7 @@ function TypeTag({ type }) {
   const className = isGroup ? 'bg-success-soft text-success' : isDirectConversion ? 'bg-info/15 text-info' : 'bg-primary-soft text-primary';
   const label = isGroup ? 'Group' : isDirectConversion ? 'Direct conversion' : '1-to-1';
   return (
-    <span className={`text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${className}`}>
+    <span className={`text-2xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${className}`}>
       {label}
     </span>
   );
@@ -55,17 +55,17 @@ function NeedsAttentionCard({ sla = {} }) {
   return (
     <Card title="Needs attention" actions={<Link to="/submissions" className="text-xs text-primary font-semibold hover:underline">View all</Link>}>
       <div className="grid grid-cols-3 gap-2 mb-4">
-        <div className="text-center bg-surface-2 rounded-[10px] py-2.5">
+        <div className="text-center bg-surface-2 rounded-thumb py-2.5">
           <div className="text-lg font-bold font-heading text-success">{sla.onTrack ?? 0}</div>
-          <div className="text-[11px] text-muted uppercase tracking-wide mt-0.5">On track</div>
+          <div className="text-2xs text-muted uppercase tracking-wide mt-0.5">On track</div>
         </div>
-        <div className="text-center bg-surface-2 rounded-[10px] py-2.5">
+        <div className="text-center bg-surface-2 rounded-thumb py-2.5">
           <div className="text-lg font-bold font-heading text-warning">{sla.dueSoon ?? 0}</div>
-          <div className="text-[11px] text-muted uppercase tracking-wide mt-0.5">Due soon</div>
+          <div className="text-2xs text-muted uppercase tracking-wide mt-0.5">Due soon</div>
         </div>
-        <div className="text-center bg-surface-2 rounded-[10px] py-2.5">
+        <div className="text-center bg-surface-2 rounded-thumb py-2.5">
           <div className="text-lg font-bold font-heading text-danger">{sla.breached ?? 0}</div>
-          <div className="text-[11px] text-muted uppercase tracking-wide mt-0.5">Breached</div>
+          <div className="text-2xs text-muted uppercase tracking-wide mt-0.5">Breached</div>
         </div>
       </div>
       {oldest.length === 0 ? (
@@ -73,7 +73,7 @@ function NeedsAttentionCard({ sla = {} }) {
       ) : (
         <div className="flex flex-col gap-1.5">
           {oldest.map((m) => (
-            <div key={m.meetingId} className="flex items-center gap-3 px-3 py-2 rounded-[9px] hover:bg-surface-2 transition-colors">
+            <div key={m.meetingId} className="flex items-center gap-3 px-3 py-2 rounded-control hover:bg-surface-2 transition-colors">
               <Icon name="alertTriangle" size={15} className="text-warning shrink-0" />
               <span className="flex-1 text-sm text-white truncate">{m.employeeName}</span>
               <TypeTag type={m.type} />
@@ -94,7 +94,7 @@ function RecentActivityCard({ items }) {
       ) : (
         <div className="flex flex-col gap-1.5">
           {items.map((m) => (
-            <div key={m.meetingId} className="flex items-center gap-3 px-3 py-2 rounded-[9px] hover:bg-surface-2 transition-colors">
+            <div key={m.meetingId} className="flex items-center gap-3 px-3 py-2 rounded-control hover:bg-surface-2 transition-colors">
               <span className="w-7 h-7 rounded-full bg-surface-2 grid place-items-center shrink-0">
                 <Icon name={m.type === MEETING_TYPES.GROUP ? 'users' : m.type === MEETING_TYPES.DIRECT_CONVERSION ? 'trendingUp' : 'user'} size={13} className="text-muted" />
               </span>
@@ -150,7 +150,7 @@ function CitiesCard({ cities }) {
     <Card title="By city">
       <div className="flex flex-col gap-1.5">
         {cities.map((c) => (
-          <div key={c.city} className="flex items-center gap-3 px-3 py-2 rounded-[9px] hover:bg-surface-2 transition-colors">
+          <div key={c.city} className="flex items-center gap-3 px-3 py-2 rounded-control hover:bg-surface-2 transition-colors">
             <Icon name="globe" size={14} className="text-muted shrink-0" />
             <span className="flex-1 text-sm text-white">{c.city}</span>
             <span className="text-xs text-muted">{c.count} meetings</span>
@@ -168,11 +168,11 @@ function DashboardSkeleton() {
       <div className={`${STAT_GRID} mb-5`}>
         {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-21" />)}
       </div>
-      <div className="grid grid-cols-2 gap-4 mb-5 max-[860px]:grid-cols-1">
+      <div className="grid grid-cols-2 gap-4 mb-5 max-nav:grid-cols-1">
         <Card title="Meetings — last 7 days"><Skeleton className="h-50" /></Card>
         <Card title="Meeting type distribution"><Skeleton className="h-50" /></Card>
       </div>
-      <div className="grid grid-cols-2 gap-4 mb-5 max-[860px]:grid-cols-1">
+      <div className="grid grid-cols-2 gap-4 mb-5 max-nav:grid-cols-1">
         <Card title="Needs attention"><Skeleton className="h-40" /></Card>
         <Card title="Recent activity"><Skeleton className="h-40" /></Card>
       </div>
@@ -208,7 +208,7 @@ export default function DashboardPage() {
     <div>
       <div className="mb-7">
         <span className="text-primary text-xs font-bold uppercase tracking-widest">Overview</span>
-        <h1 className="text-[32px] leading-tight font-bold font-heading tracking-tight text-white mt-1">Hi {user.name.split(' ')[0]} 👋</h1>
+        <h1 className="text-display leading-tight font-bold font-heading tracking-tight text-white mt-1">Hi {user.name.split(' ')[0]} 👋</h1>
         <p className="text-muted text-sm mt-1.5">
           {isUser
             ? "Here's your activity today."
@@ -229,7 +229,7 @@ export default function DashboardPage() {
             <StatCard label="My rank" value={summary.rank ? `#${summary.rank}` : '—'} sub={summary.gapToNext ? `${summary.gapToNext} to next` : ''} accent="amber" />
           </Reveal>
 
-          <Reveal delay={80} className="grid grid-cols-2 gap-4 mb-5 max-[860px]:grid-cols-1">
+          <Reveal delay={STAGGER[1]} className="grid grid-cols-2 gap-4 mb-5 max-nav:grid-cols-1">
             <Card title="Meetings — last 7 days">
               <LineChart data={summary.trend} />
             </Card>
@@ -244,7 +244,7 @@ export default function DashboardPage() {
             </Card>
           </Reveal>
 
-          <Reveal delay={160}>
+          <Reveal delay={STAGGER[2]}>
             <Card title="Status breakdown">
               <div className={STAT_GRID}>
                 <StatCard label="Approved" value={k.byStatus.APPROVED} accent="green" />
@@ -273,7 +273,7 @@ export default function DashboardPage() {
             )}
           </Reveal>
 
-          <Reveal delay={80} className="grid grid-cols-2 gap-4 mb-5 max-[860px]:grid-cols-1">
+          <Reveal delay={STAGGER[1]} className="grid grid-cols-2 gap-4 mb-5 max-nav:grid-cols-1">
             <Card
               title="Meetings — last 7 days"
               actions={<DeltaBadge pct={summary.weekOverWeek?.deltaPct} />}
@@ -291,20 +291,20 @@ export default function DashboardPage() {
             </Card>
           </Reveal>
 
-          <Reveal delay={160} className="grid grid-cols-2 gap-4 mb-5 max-[860px]:grid-cols-1">
+          <Reveal delay={STAGGER[2]} className="grid grid-cols-2 gap-4 mb-5 max-nav:grid-cols-1">
             <NeedsAttentionCard sla={summary.sla} />
             <RecentActivityCard items={summary.recentActivity || []} />
           </Reveal>
 
-          <Reveal delay={240} className="mb-5">
+          <Reveal delay={STAGGER[3]} className="mb-5">
             <PerformanceCard rows={summary.performance || []} isAdmin={isAdmin} />
           </Reveal>
 
           {summary.cities ? (
-            <Reveal delay={320} className="grid grid-cols-2 gap-4 max-[860px]:grid-cols-1">
+            <Reveal delay={STAGGER[4]} className="grid grid-cols-2 gap-4 max-nav:grid-cols-1">
               <Card title="Top performers">
                 {(summary.leaderboardPreview || []).length === 0 ? (
-                  <p className="text-[13px] text-muted">No approved points yet.</p>
+                  <p className="text-sm text-muted">No approved points yet.</p>
                 ) : (
                   <BarChart data={summary.leaderboardPreview} height={Math.max(160, summary.leaderboardPreview.length * 42)} />
                 )}
@@ -312,10 +312,10 @@ export default function DashboardPage() {
               <CitiesCard cities={summary.cities} />
             </Reveal>
           ) : (
-            <Reveal delay={320}>
+            <Reveal delay={STAGGER[4]}>
               <Card title="Top performers">
                 {(summary.leaderboardPreview || []).length === 0 ? (
-                  <p className="text-[13px] text-muted">No approved points yet.</p>
+                  <p className="text-sm text-muted">No approved points yet.</p>
                 ) : (
                   <BarChart data={summary.leaderboardPreview} height={Math.max(160, summary.leaderboardPreview.length * 42)} />
                 )}

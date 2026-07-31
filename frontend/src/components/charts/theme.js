@@ -34,9 +34,12 @@ export const CHART_FONT =
       'Clash Grotesk, system-ui, sans-serif'
     : 'Clash Grotesk, system-ui, sans-serif';
 
+// ECharts renders to <canvas>, so it can't read CSS custom properties —
+// these numbers are the canvas-side equivalents of --text-2xs/--text-xs in
+// index.css and must be updated by hand if that scale ever changes.
 export const axisCommon = {
   axisLine: { lineStyle: { color: 'rgba(204,211,217,0.2)' } },
-  axisLabel: { color: '#9b9db1', fontFamily: CHART_FONT, fontSize: 11 },
+  axisLabel: { color: '#9b9db1', fontFamily: CHART_FONT, fontSize: 11 }, // --text-2xs
   splitLine: { lineStyle: { color: 'rgba(204,211,217,0.06)' } },
   axisTick: { show: false },
 };
@@ -45,5 +48,5 @@ export const tooltipCommon = {
   backgroundColor: '#25262f',
   borderColor: 'rgba(204,211,217,0.2)',
   borderWidth: 1,
-  textStyle: { color: '#ffffff', fontFamily: CHART_FONT, fontSize: 12 },
+  textStyle: { color: '#ffffff', fontFamily: CHART_FONT, fontSize: 12 }, // --text-xs
 };

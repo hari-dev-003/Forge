@@ -3,10 +3,10 @@
 import { STATUS_LABEL } from '../../constants.js';
 
 const BTN_BASE =
-  'inline-flex items-center justify-center gap-2 rounded-[9px] font-semibold cursor-pointer transition-all duration-300 whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed';
+  'inline-flex items-center justify-center gap-2 rounded-control font-semibold cursor-pointer transition-all duration-300 whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed';
 const BTN_SIZE = {
   md: 'px-4 py-2.5 text-sm',
-  sm: 'px-3 py-1.75 text-[13px]',
+  sm: 'px-3 py-1.75 text-sm',
 };
 const BTN_VARIANT = {
   primary: 'btn-sheen bg-primary text-on-primary font-bold hover:bg-primary-dark',
@@ -34,10 +34,10 @@ export function Button({ variant = 'primary', size = 'md', loading, children, cl
 
 export function Card({ title, actions, children, className = '' }) {
   return (
-    <section className={`glow-card bg-surface/80 backdrop-blur-md border border-border rounded-[14px] shadow-card mb-5 ${className}`}>
+    <section className={`glow-card bg-surface/80 backdrop-blur-md border border-border rounded-card shadow-card mb-5 ${className}`}>
       {(title || actions) && (
         <header className="flex items-center justify-between px-5 py-4 border-b border-border">
-          {title && <h3 className="text-[15px] font-medium text-white tracking-[-0.005em]">{title}</h3>}
+          {title && <h3 className="text-md font-medium text-white tracking-[-0.005em]">{title}</h3>}
           {actions}
         </header>
       )}
@@ -56,11 +56,11 @@ const STAT_ACCENT = {
 export function StatCard({ label, value, sub, accent = 'indigo' }) {
   return (
     <div
-      className={`glow-card relative overflow-hidden bg-surface/80 backdrop-blur-md border border-border rounded-[14px] p-4.5 flex flex-col gap-1 shadow-card
+      className={`glow-card relative overflow-hidden bg-surface/80 backdrop-blur-md border border-border rounded-card p-4.5 flex flex-col gap-1 shadow-card
         before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 ${STAT_ACCENT[accent] || STAT_ACCENT.indigo}`}
     >
       <span className="text-xs text-muted type-label">{label}</span>
-      <span className="text-[32px] font-semibold tracking-[-0.03em] leading-none text-white font-heading tabular">{value}</span>
+      <span className="text-display font-semibold tracking-[-0.03em] leading-none text-white font-heading tabular">{value}</span>
       {sub != null && <span className="text-xs text-muted">{sub}</span>}
     </div>
   );
@@ -85,7 +85,7 @@ export function Badge({ status, children }) {
 export function Field({ label, error, children, hint }) {
   return (
     <label className="flex flex-col gap-1.5 mb-4">
-      {label && <span className="text-[13px] font-medium text-muted">{label}</span>}
+      {label && <span className="text-sm font-medium text-muted">{label}</span>}
       {children}
       {hint && <span className="text-xs text-muted">{hint}</span>}
       {error && <span className="text-xs text-danger">{error}</span>}
@@ -94,7 +94,7 @@ export function Field({ label, error, children, hint }) {
 }
 
 const INPUT_CLASS =
-  'w-full px-3 py-2.5 border border-border rounded-[9px] text-sm bg-surface-2 text-white transition-all duration-200 focus:outline-none focus:border-primary focus:ring-[3px] focus:ring-primary-soft placeholder:text-muted/60';
+  'w-full px-3 py-2.5 border border-border rounded-control text-sm bg-surface-2 text-white transition-all duration-200 focus:outline-none focus:border-primary focus:ring-[3px] focus:ring-primary-soft placeholder:text-muted/60';
 
 export function Input({ className = '', ...props }) {
   return <input className={`${INPUT_CLASS} ${className}`} {...props} />;
@@ -130,7 +130,7 @@ export function PageHeader({ eyebrow, title, subtitle, actions }) {
     <div className="mb-7 flex justify-between items-start gap-4 flex-wrap">
       <div>
         {eyebrow && <span className="text-primary text-xs type-label">{eyebrow}</span>}
-        <h1 className="text-[32px] leading-tight font-semibold font-heading tracking-[-0.03em] text-white mt-1">{title}</h1>
+        <h1 className="text-display leading-tight font-semibold font-heading text-white mt-1">{title}</h1>
         {subtitle && <p className="text-muted text-sm mt-1.5">{subtitle}</p>}
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}
@@ -139,7 +139,7 @@ export function PageHeader({ eyebrow, title, subtitle, actions }) {
 }
 
 export function Skeleton({ className = '' }) {
-  return <div className={`bg-surface-2 animate-pulse rounded-[9px] ${className}`} />;
+  return <div className={`bg-surface-2 animate-pulse rounded-control ${className}`} />;
 }
 
 export function Spinner({ label }) {
@@ -170,7 +170,7 @@ export function Pagination({ page, pageCount, onChange, className = '' }) {
   }
 
   const btn =
-    'min-w-9 h-9 px-2.5 rounded-[9px] text-[13px] font-semibold border transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed';
+    'min-w-9 h-9 px-2.5 rounded-control text-sm font-semibold border transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed';
 
   return (
     <nav aria-label="Pagination" className={`flex items-center justify-center gap-1.5 ${className}`}>
@@ -226,7 +226,7 @@ export function EmptyState({ title, hint, icon }) {
         </div>
       )}
       <p className="font-semibold text-white">{title}</p>
-      {hint && <p className="text-[13px] mt-1.5">{hint}</p>}
+      {hint && <p className="text-sm mt-1.5">{hint}</p>}
     </div>
   );
 }

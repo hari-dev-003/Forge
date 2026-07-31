@@ -181,9 +181,9 @@ export default function PhotoUpload({ files, onSelect, onLocation }) {
   return (
     <div>
       {previews.length > 0 && (
-        <ul className="grid grid-cols-3 gap-2 mb-2.5 max-[420px]:grid-cols-2">
+        <ul className="grid grid-cols-3 gap-2 mb-2.5 max-mobile:grid-cols-2">
           {previews.map((p, i) => (
-            <li key={`${p.name}-${i}`} className="relative rounded-[9px] overflow-hidden border border-border">
+            <li key={`${p.name}-${i}`} className="relative rounded-control overflow-hidden border border-border">
               <img src={p.url} alt={`Meeting proof ${i + 1}`} className="w-full h-24 object-cover" />
               <button
                 type="button"
@@ -193,7 +193,7 @@ export default function PhotoUpload({ files, onSelect, onLocation }) {
               >
                 <Icon name="x" size={12} />
               </button>
-              <span className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[10px] px-1.5 py-0.5 truncate">
+              <span className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-2xs px-1.5 py-0.5 truncate">
                 {fmtSize(p.size)}
               </span>
             </li>
@@ -206,7 +206,7 @@ export default function PhotoUpload({ files, onSelect, onLocation }) {
           role="button"
           tabIndex={0}
           aria-label="Add meeting photo"
-          className="border-2 border-dashed border-border rounded-[14px] p-2 cursor-pointer transition-colors hover:border-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+          className="border-2 border-dashed border-border rounded-card p-2 cursor-pointer transition-colors hover:border-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
           onClick={openPicker}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { submitMeeting, resetSubmit } from '../features/meetings/meetingsSlice.js';
 import { pushToast } from '../features/ui/uiSlice.js';
 import { Card, Button, Field, Input, Select, Checkbox, PageHeader } from '../components/ui/index.jsx';
-import Reveal from '../components/ui/Reveal.jsx';
+import Reveal, { STAGGER } from '../components/ui/Reveal.jsx';
 import PhotoUpload from '../components/meetings/PhotoUpload.jsx';
 import ScreenshotUpload from '../components/meetings/ScreenshotUpload.jsx';
 import { MEETING_TYPES, STAKING_VOLUME_THRESHOLD } from '../constants.js';
@@ -21,8 +21,8 @@ const empty = {
 };
 
 const CHECKBOX_ROW = 'flex items-center gap-2 mb-4 text-sm';
-const GRID_2 = 'grid grid-cols-2 gap-4 max-[860px]:grid-cols-1';
-const GRID_3 = 'grid grid-cols-3 gap-3 max-[860px]:grid-cols-1';
+const GRID_2 = 'grid grid-cols-2 gap-4 max-nav:grid-cols-1';
+const GRID_3 = 'grid grid-cols-3 gap-3 max-nav:grid-cols-1';
 
 export default function SubmitMeetingPage() {
   const dispatch = useDispatch();
@@ -134,7 +134,7 @@ export default function SubmitMeetingPage() {
                 </Field>
 
                 {members.map((m, i) => (
-                  <div key={i} className="border border-border rounded-[9px] p-3 mb-3">
+                  <div key={i} className="border border-border rounded-control p-3 mb-3">
                     <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-2">Member {i + 1}</p>
                     <div className={GRID_3}>
                       <Field label="Name">
@@ -169,7 +169,7 @@ export default function SubmitMeetingPage() {
                     <Input type="number" min="0" value={form.dcStakingVolume} onChange={set('dcStakingVolume')} placeholder="0" required />
                   </Field>
                   <Field label="Stacking type" hint={`Under ${STAKING_VOLUME_THRESHOLD.toLocaleString()} is BVS, at or above is ESP`}>
-                    <div className="w-full px-3 py-2.5 border border-border rounded-[9px] text-sm bg-surface-2 text-muted">
+                    <div className="w-full px-3 py-2.5 border border-border rounded-control text-sm bg-surface-2 text-muted">
                       {stackingTypePreview}
                     </div>
                   </Field>
@@ -211,8 +211,8 @@ export default function SubmitMeetingPage() {
           </div>
         </Reveal>
 
-        <Reveal delay={80} className="mt-1">
-          {error && <div className="bg-danger-soft text-danger px-3 py-2.5 rounded-[9px] text-[13px] mb-4">{error}</div>}
+        <Reveal delay={STAGGER[1]} className="mt-1">
+          {error && <div className="bg-danger-soft text-danger px-3 py-2.5 rounded-control text-sm mb-4">{error}</div>}
           <Button type="submit" loading={submitStatus === 'loading'}>Submit for review</Button>
         </Reveal>
       </form>

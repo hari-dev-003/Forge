@@ -67,7 +67,7 @@ export default function AttachmentUpload({ files, onChange }) {
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="w-full border-2 border-dashed border-border rounded-[14px] p-6 flex flex-col items-center gap-1.5 text-muted cursor-pointer transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+        className="w-full border-2 border-dashed border-border rounded-card p-6 flex flex-col items-center gap-1.5 text-muted cursor-pointer transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
       >
         <Icon name="paperclip" size={26} className="text-muted/60" />
         <span>Click to attach files</span>
@@ -81,7 +81,7 @@ export default function AttachmentUpload({ files, onChange }) {
       {files.length > 0 && (
         <ul className="flex flex-col gap-1.5 mt-3">
           {files.map((f, i) => (
-            <li key={`${f.name}-${i}`} className="flex items-center gap-2.5 bg-surface-2 border border-border rounded-[9px] px-3 py-2">
+            <li key={`${f.name}-${i}`} className="flex items-center gap-2.5 bg-surface-2 border border-border rounded-control px-3 py-2">
               <Icon name={f.type.startsWith('image/') ? 'image' : 'fileText'} size={16} className="text-muted shrink-0" />
               <span className="flex-1 min-w-0 truncate text-sm text-white">{f.name}</span>
               <span className="text-xs text-muted shrink-0">{fmtSize(f.size)}</span>

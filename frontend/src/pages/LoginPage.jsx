@@ -5,6 +5,7 @@ import { login, completeNewPassword, clearError, clearChallenge } from '../featu
 import { usePwaInstall } from '../hooks/usePwaInstall.js';
 import { Button, Field, Input } from '../components/ui/index.jsx';
 import Icon from '../components/ui/Icon.jsx';
+import Reveal, { STAGGER } from '../components/ui/Reveal.jsx';
 import { LogoMark } from '../components/brand/Logo.jsx';
 
 // Mirrors the Cognito password policy the backend enforces, so the meter can
@@ -56,7 +57,7 @@ function PasswordMeter({ value }) {
             return (
               <li
                 key={r.label}
-                className={`flex items-center gap-1 text-[11px] transition-colors duration-200 ${
+                className={`flex items-center gap-1 text-2xs transition-colors duration-200 ${
                   ok ? 'text-success' : 'text-muted/70'
                 }`}
               >
@@ -66,7 +67,7 @@ function PasswordMeter({ value }) {
             );
           })}
         </ul>
-        <span className={`text-[11px] font-bold shrink-0 ${tier.text}`}>{tier.label}</span>
+        <span className={`text-2xs font-bold shrink-0 ${tier.text}`}>{tier.label}</span>
       </div>
       {/* Screen readers get the verdict without the decorative bar segments. */}
       <span className="sr-only" aria-live="polite">
@@ -113,7 +114,7 @@ function Alert({ tone, children }) {
   return (
     <div
       role="alert"
-      className={`flex items-start gap-2 border px-3 py-2.5 rounded-[9px] text-[13px] mb-4 leading-relaxed ${map[tone]}`}
+      className={`flex items-start gap-2 border px-3 py-2.5 rounded-control text-sm mb-4 leading-relaxed ${map[tone]}`}
     >
       <Icon name={tone === 'danger' ? 'alertTriangle' : 'check'} size={14} className="shrink-0 mt-0.5" />
       <span>{children}</span>
@@ -161,12 +162,16 @@ export default function LoginPage() {
     : 'Sign in to your associate workspace.';
 
   return (
-    <div className="min-h-screen grid grid-cols-[1.05fr_0.95fr] max-[900px]:grid-cols-1 bg-bg relative overflow-hidden">
+    <div className="min-h-screen grid grid-cols-[1.05fr_0.95fr] max-split:grid-cols-1 bg-bg relative overflow-hidden">
       <div className="midnight-effect-1" />
       <div className="midnight-effect-2" />
 
       {/* ─────────── Brand panel ─────────── */}
-      <aside className="relative z-10 overflow-hidden border-r border-border bg-gradient-to-br from-hero-from via-hero-via to-hero-to p-14 flex flex-col justify-between max-[900px]:hidden">
+      <Reveal
+        as="aside"
+        delay={STAGGER[1]}
+        className="relative z-10 overflow-hidden border-r border-border bg-gradient-to-br from-hero-from via-hero-via to-hero-to p-14 flex flex-col justify-between max-split:hidden"
+      >
         {/* The mark alone as a large watermark — not the lockup. The lockup's
             FORGE wordmark landed directly under the headline and read as a
             second competing title; the mark carries the brand here without
@@ -200,15 +205,15 @@ export default function LoginPage() {
         </div>
 
         <div className="relative max-w-125">
-          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-soft border border-primary/30 text-primary text-[11px] font-bold uppercase tracking-widest mb-6">
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-soft border border-primary/30 text-primary text-2xs font-bold uppercase tracking-widest mb-6">
             <Icon name="trendingUp" size={12} /> Associate platform
           </span>
-          <h1 className="text-[40px] leading-[1.08] font-bold font-heading text-white tracking-[-0.03em]">
+          <h1 className="text-display-lg leading-[1.08] font-bold font-heading text-white">
             Run with the bulls.
             <br />
             <span className="text-primary">Earn your position.</span>
           </h1>
-          <p className="mt-5 text-muted text-[15px] leading-relaxed max-w-110">
+          <p className="mt-5 text-muted text-md leading-relaxed max-w-110">
             Log verified client meetings, earn points on manager approval, and climb the desk leaderboard —
             the growth engine behind our crypto business.
           </p>
@@ -216,32 +221,32 @@ export default function LoginPage() {
 
         <ul className="relative flex flex-wrap gap-x-5 gap-y-2 pt-6 border-t border-border/40">
           {TRUST.map((t) => (
-            <li key={t.label} className="flex items-center gap-1.5 text-[11.5px] text-muted/80 font-medium">
+            <li key={t.label} className="flex items-center gap-1.5 text-2xs text-muted/80 font-medium">
               <Icon name={t.icon} size={13} className="text-primary/70" />
               {t.label}
             </li>
           ))}
         </ul>
-      </aside>
+      </Reveal>
 
       {/* ─────────── Form panel ─────────── */}
-      <main className="relative z-10 grid place-items-center p-10 pt-[max(40px,env(safe-area-inset-top))] max-[900px]:p-6">
+      <main className="relative z-10 grid place-items-center p-10 pt-[max(40px,env(safe-area-inset-top))] max-split:p-6">
         {/* Mobile keeps the lockup as a base watermark — the brand panel is
             hidden below 900px, so this is the only place the motif survives. */}
         <div
-          className="hidden max-[900px]:block absolute left-1/2 -translate-x-1/2 bottom-0 w-[520px] max-w-[135%] pointer-events-none select-none"
+          className="hidden max-split:block absolute left-1/2 -translate-x-1/2 bottom-0 w-[520px] max-w-[135%] pointer-events-none select-none"
           aria-hidden="true"
         >
           {/* Behind the form card, so it stays well under desktop strength. */}
           <LogoMark size="lg" className="w-full opacity-[0.16]" />
         </div>
 
-        <div className="relative w-full max-w-100">
+        <Reveal as="div" delay={STAGGER[2]} className="relative w-full max-w-100">
           {/* Mobile-only brand row — the aside is hidden below 900px, so without
               this the small screen loses all brand context. Uses the mark alone,
               not the lockup: the wordmark is unreadable at 36px, and it would
               repeat the watermark sitting behind the card. */}
-          <div className="hidden max-[900px]:flex items-center justify-center gap-2.5 mb-7">
+          <div className="hidden max-split:flex items-center justify-center gap-2.5 mb-7">
             <LogoMark className="w-9 h-9 object-contain shrink-0" />
             <span className="text-lg text-white font-heading type-wordmark">
             FOR<b className="text-primary font-semibold">GE</b>
@@ -251,8 +256,11 @@ export default function LoginPage() {
           {/* Gradient hairline ring: a 1px gradient-filled wrapper reads as a
               lit edge, which a flat border can't do. Gold at the top fading to
               nothing at the bottom implies a light source above the card. */}
-          <div className="relative rounded-[20px] p-px bg-gradient-to-b from-primary/35 via-border/50 to-border/10 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.8)]">
-            <div className="relative overflow-hidden bg-surface/75 backdrop-blur-xl p-8 rounded-[19px] max-[900px]:p-6">
+          <div className="relative rounded-shell p-px bg-gradient-to-b from-primary/35 via-border/50 to-border/10 shadow-modal">
+            {/* 1px smaller than the outer rounded-shell (20px) so this inner
+                surface sits flush inside the 1px gradient ring above — kept as
+                a literal value on purpose, not tokenized. */}
+            <div className="relative overflow-hidden bg-surface/75 backdrop-blur-xl p-8 rounded-[19px] max-split:p-6">
               {/* Specular sheen along the top edge */}
               <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
               {/* Interior glow, anchored top-centre to match the ring's light */}
@@ -265,7 +273,7 @@ export default function LoginPage() {
               />
 
               <div className="relative">
-                <h2 className="text-[26px] font-bold font-heading text-white tracking-tight">{heading}</h2>
+                <h2 className="text-display-sm font-bold font-heading text-white">{heading}</h2>
                 <p className="text-muted text-sm mt-1.5 mb-6">{subheading}</p>
 
                 {!challenge && error && <Alert tone="danger">{error}</Alert>}
@@ -348,7 +356,7 @@ export default function LoginPage() {
                 {(canInstall || (isIOS && !isStandalone)) && (
                   <div className="relative mt-7 mb-5 flex items-center gap-3">
                     <span className="h-px flex-1 bg-border/70" />
-                    <span className="text-[10.5px] uppercase tracking-widest text-muted/60 font-bold">
+                    <span className="text-2xs uppercase tracking-widest text-muted/60 font-bold">
                       Or
                     </span>
                     <span className="h-px flex-1 bg-border/70" />
@@ -360,7 +368,7 @@ export default function LoginPage() {
                   </Button>
                 )}
                 {isIOS && !isStandalone && (
-                  <p className="text-xs text-muted bg-surface-2/70 border border-border px-3 py-2.5 rounded-[9px] leading-relaxed flex items-start gap-2">
+                  <p className="text-xs text-muted bg-surface-2/70 border border-border px-3 py-2.5 rounded-control leading-relaxed flex items-start gap-2">
                     <Icon name="smartphone" size={14} className="shrink-0 mt-0.5" />
                     <span>
                       Install on iPhone: tap the <b>Share</b> icon, then <b>Add to Home Screen</b>.
@@ -370,7 +378,7 @@ export default function LoginPage() {
 
                 {/* In-card trust line — reassurance belongs next to the button
                     that submits credentials, not stranded below the card. */}
-                <div className="mt-7 pt-5 border-t border-border/60 flex items-center justify-center gap-1.5 text-[11.5px] text-muted/70">
+                <div className="mt-7 pt-5 border-t border-border/60 flex items-center justify-center gap-1.5 text-2xs text-muted/70">
                   <Icon name="shield" size={12} className="text-primary/70" />
                   Secured sign-in · access is logged to the audit trail
                 </div>
@@ -378,10 +386,10 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <p className="mt-6 text-center text-[11.5px] text-muted/70 leading-relaxed">
+          <p className="mt-6 text-center text-2xs text-muted/70 leading-relaxed">
             Accounts are provisioned by your admin or manager.
           </p>
-        </div>
+        </Reveal>
       </main>
     </div>
   );

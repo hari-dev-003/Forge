@@ -11,7 +11,7 @@ import {
 import { pushToast } from '../features/ui/uiSlice.js';
 import { api, unwrap, apiError } from '../api/client.js';
 import { Card, Button, Field, Input, Select, Checkbox, Badge, Spinner, EmptyState, PageHeader } from '../components/ui/index.jsx';
-import Reveal from '../components/ui/Reveal.jsx';
+import Reveal, { STAGGER } from '../components/ui/Reveal.jsx';
 import Icon from '../components/ui/Icon.jsx';
 import RichTextEditor from '../components/announcements/RichTextEditor.jsx';
 import AttachmentUpload from '../components/announcements/AttachmentUpload.jsx';
@@ -43,7 +43,7 @@ const emptyForm = {
 
 const TH = 'text-left px-3.5 py-3 text-muted text-xs uppercase tracking-wide border-b border-border';
 const TD = 'px-3.5 py-3 border-b border-border';
-const GRID_2 = 'grid grid-cols-2 gap-4 max-[860px]:grid-cols-1';
+const GRID_2 = 'grid grid-cols-2 gap-4 max-nav:grid-cols-1';
 
 /**
  * Upload one attachment straight to storage via a presigned PUT.
@@ -252,7 +252,7 @@ export default function AnnouncementAdminPage() {
               {existingAttachments.length > 0 && (
                 <ul className="flex flex-col gap-1.5 mb-2.5">
                   {existingAttachments.map((att, i) => (
-                    <li key={att.key} className="flex items-center gap-2.5 bg-surface-2 border border-border rounded-[9px] px-3 py-2">
+                    <li key={att.key} className="flex items-center gap-2.5 bg-surface-2 border border-border rounded-control px-3 py-2">
                       <Icon name="fileText" size={16} className="text-muted shrink-0" />
                       <span className="flex-1 min-w-0 truncate text-sm text-white">{att.fileName}</span>
                       <button type="button" onClick={() => removeExistingAttachment(i)} aria-label={`Remove ${att.fileName}`} className="text-muted hover:text-danger cursor-pointer">
@@ -310,7 +310,7 @@ export default function AnnouncementAdminPage() {
               </p>
             </div>
 
-            {error && <div className="bg-danger-soft text-danger px-3 py-2.5 rounded-[9px] text-[13px] mb-4">{error}</div>}
+            {error && <div className="bg-danger-soft text-danger px-3 py-2.5 rounded-control text-sm mb-4">{error}</div>}
 
             <div className="flex gap-2">
               <Button type="submit" loading={createStatus === 'loading' || uploading}>
@@ -322,7 +322,7 @@ export default function AnnouncementAdminPage() {
         </Card>
       </Reveal>
 
-      <Reveal delay={80}>
+      <Reveal delay={STAGGER[1]}>
         <Card title={`${managed.length} announcements`}>
           {managedStatus === 'loading' ? (
             <Spinner label="Loading…" />

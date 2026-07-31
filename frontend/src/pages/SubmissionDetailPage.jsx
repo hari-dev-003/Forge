@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useParams, Link } from 'react-router-dom';
 import { fetchSubmission, clearCurrent } from '../features/submissions/submissionsSlice.js';
 import { Card, Badge, Spinner, EmptyState, PageHeader } from '../components/ui/index.jsx';
-import Reveal from '../components/ui/Reveal.jsx';
+import Reveal, { STAGGER } from '../components/ui/Reveal.jsx';
 import Icon from '../components/ui/Icon.jsx';
 import ImageLightbox from '../components/announcements/ImageLightbox.jsx';
 import { assetUrl } from '../api/client.js';
@@ -28,12 +28,15 @@ function Detail({ label, value }) {
   return (
     <div>
       <dt className="text-xs uppercase tracking-wide text-muted">{label}</dt>
-      <dd className="text-[15px] text-white mt-0.5 break-words">{value || '—'}</dd>
+      <dd className="text-md text-white mt-0.5 break-words">{value || '—'}</dd>
     </div>
   );
 }
 
-const DL = 'grid grid-cols-3 gap-x-6 gap-y-4 max-[720px]:grid-cols-2 max-[460px]:grid-cols-1';
+// The 1-column trigger moves from 460px to the named 560px `mobile`
+// breakpoint (a 100px shift, consolidating a one-off with the app's other
+// mobile tier) — deliberate, not a blind token swap.
+const DL = 'grid grid-cols-3 gap-x-6 gap-y-4 max-tablet:grid-cols-2 max-mobile:grid-cols-1';
 const TH = 'text-left px-3 py-2 text-muted text-xs uppercase tracking-wide border-b border-border';
 const TD = 'px-3 py-2.5 border-b border-border';
 
@@ -183,7 +186,7 @@ export default function SubmissionDetailPage() {
       </Reveal>
 
       {images.length > 0 && (
-        <Reveal delay={80}>
+        <Reveal delay={STAGGER[1]}>
           <Card title={`Proof ${images.length === 1 ? 'photo' : `photos (${images.length})`}`}>
             <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3">
               {images.map((img, i) => (
@@ -192,7 +195,7 @@ export default function SubmissionDetailPage() {
                   type="button"
                   onClick={() => setPreviewIndex(i)}
                   aria-label={`Preview ${img.fileName}`}
-                  className="group relative aspect-4/3 rounded-[9px] overflow-hidden border border-border cursor-zoom-in focus-visible:outline-2 focus-visible:outline-primary"
+                  className="group relative aspect-4/3 rounded-control overflow-hidden border border-border cursor-zoom-in focus-visible:outline-2 focus-visible:outline-primary"
                 >
                   <img
                     src={assetUrl(img.url)}
@@ -209,7 +212,7 @@ export default function SubmissionDetailPage() {
 
       {/* Review outcome — the manager's decision, kept clearly apart from what
           the executive recorded above. */}
-      <Reveal delay={160}>
+      <Reveal delay={STAGGER[2]}>
         <Card title="Review">
           <dl className={DL}>
             <div>
@@ -227,7 +230,7 @@ export default function SubmissionDetailPage() {
             {m.review?.reviewedAt ? <Detail label="Reviewed at" value={fmtDateTime(m.review.reviewedAt)} /> : null}
           </dl>
           {m.review?.reason && (
-            <p className="text-[13px] text-danger mt-4">
+            <p className="text-sm text-danger mt-4">
               <span className="text-muted">Reason: </span>
               {m.review.reason}
             </p>

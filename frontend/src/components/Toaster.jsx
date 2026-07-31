@@ -22,7 +22,7 @@ function Toast({ toast }) {
 
   return (
     <div
-      className={`flex items-start gap-2.5 pl-4 pr-2.5 py-3 rounded-[9px] text-white text-sm shadow-card cursor-pointer animate-toast-in ${tone.bg}`}
+      className={`flex items-start gap-2.5 pl-4 pr-2.5 py-3 rounded-control text-white text-sm shadow-card cursor-pointer animate-toast-in ${tone.bg}`}
       onClick={dismiss}
     >
       <Icon name={tone.icon} size={16} className="shrink-0 mt-0.5" />

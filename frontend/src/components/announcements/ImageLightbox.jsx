@@ -101,7 +101,7 @@ export default function ImageLightbox({ images, index, onClose, onIndexChange })
           src={assetUrl(current.url)}
           alt={current.fileName || ''}
           onClick={(e) => e.stopPropagation()}
-          className="max-h-full max-w-full object-contain rounded-[10px]"
+          className="max-h-full max-w-full object-contain rounded-thumb"
         />
 
         {images.length > 1 && (

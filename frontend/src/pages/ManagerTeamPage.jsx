@@ -83,7 +83,7 @@ export default function ManagerTeamPage() {
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search executives…"
                 aria-label="Search executives by name"
-                className="pl-9 w-64 max-[560px]:w-44"
+                className="pl-9 w-64 max-mobile:w-44"
               />
             </div>
           }

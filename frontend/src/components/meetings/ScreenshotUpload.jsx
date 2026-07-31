@@ -46,7 +46,7 @@ export default function ScreenshotUpload({ onSelect }) {
         role="button"
         tabIndex={0}
         aria-label={preview ? `${name}, click to change screenshot` : 'Upload screenshot'}
-        className="border-2 border-dashed border-border rounded-[14px] p-2 cursor-pointer transition-colors hover:border-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+        className="border-2 border-dashed border-border rounded-card p-2 cursor-pointer transition-colors hover:border-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
         onClick={openPicker}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -58,7 +58,7 @@ export default function ScreenshotUpload({ onSelect }) {
         <input ref={inputRef} type="file" accept="image/*" hidden onChange={handle} tabIndex={-1} />
         {preview ? (
           <div>
-            <img src={preview} alt="Screenshot" className="w-full max-h-70 object-cover rounded-[9px]" />
+            <img src={preview} alt="Screenshot" className="w-full max-h-70 object-cover rounded-control" />
             <span className="block text-center text-xs text-muted mt-2">
               {name} ({formatBytes(size)}) — click to change
             </span>
