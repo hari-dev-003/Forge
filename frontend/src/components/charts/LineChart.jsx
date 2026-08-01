@@ -17,12 +17,13 @@ export default function LineChart({ data = [], height = 200 }) {
         type: 'line',
         data: data.map((d) => d.count),
         smooth: true,
-        symbolSize: 6,
-        lineStyle: { color: '#eeb31c', width: 2.5 },
+        symbolSize: 8,
+        showSymbol: false,
+        lineStyle: { color: '#eeb31c', width: 3 },
         itemStyle: { color: '#eeb31c' },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(238,179,28,0.35)' },
+            { offset: 0, color: 'rgba(238,179,28,0.18)' },
             { offset: 1, color: 'rgba(238,179,28,0)' },
           ]),
         },

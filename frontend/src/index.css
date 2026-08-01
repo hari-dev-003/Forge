@@ -48,30 +48,30 @@
   --font-weight-extrabold: 700;
   --font-weight-black: 700;
 
-  --color-bg: #0a0a0c;
-  --color-surface: #25262f;
-  --color-surface-2: #262222;
-  --color-border: rgba(204, 211, 217, 0.2);
+  --color-bg: #09090b;
+  --color-surface: #18181b;
+  --color-surface-2: #27272a;
+  --color-border: rgba(255, 255, 255, 0.06);
   --color-ink: #ffffff;
   --color-muted: #9b9db1;
 
   --color-primary: #eeb31c;
   --color-primary-dark: #cb960e;
-  --color-primary-soft: rgba(238, 179, 28, 0.15);
+  --color-primary-soft: rgba(238, 179, 28, 0.12);
 
   --color-success: #80db66;
-  --color-success-soft: rgba(128, 219, 102, 0.15);
+  --color-success-soft: rgba(128, 219, 102, 0.12);
   --color-warning: #f59e0b;
-  --color-warning-soft: rgba(245, 158, 11, 0.15);
+  --color-warning-soft: rgba(245, 158, 11, 0.12);
   --color-danger: #ef4444;
-  --color-danger-soft: rgba(239, 68, 68, 0.15);
+  --color-danger-soft: rgba(239, 68, 68, 0.12);
   --color-info: #3b82f6;
 
-  --color-sidebar: #121213;
+  --color-sidebar: #0d0d10;
 
-  --color-hero-from: #0c0e17;
-  --color-hero-via: #121524;
-  --color-hero-to: #08090d;
+  --color-hero-from: #0a0a0d;
+  --color-hero-via: #141419;
+  --color-hero-to: #08080a;
 
   --color-bronze: #cd7f32;
 
@@ -97,11 +97,11 @@
      radius scale, which several small uppercase pills/badges/banners
      already use at their stock values (6/8/12px) for an unrelated purpose —
      overriding those names would silently distort every one of them. */
-  --radius-control: 9px;
+  --radius-control: 8px;
   --radius-thumb: 10px;
   --radius-card: 14px;
   --radius-popup: 16px;
-  --radius-shell: 20px;
+  --radius-shell: 14px;
 
   /* Named breakpoints, generating both {name}: (min-width) and max-{name}:
      (max-width) variants. Named for what they do rather than a generic
@@ -114,11 +114,11 @@
   --breakpoint-nav: 860px;
   --breakpoint-split: 900px;
 
-  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.35);
+  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.4), 0 0 1px 1px rgba(255, 255, 255, 0.03);
   /* Hover-lift for interactive cards (was hardcoded inside .glow-card). */
-  --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-elevated: 0 20px 40px -15px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(238, 179, 28, 0.15);
   /* Floating surfaces — modals, popups, the login card. */
-  --shadow-modal: 0 24px 60px -20px rgba(0, 0, 0, 0.8);
+  --shadow-modal: 0 32px 64px -16px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(238, 179, 28, 0.2);
 
   --animate-toast-in: toast-in 0.2s ease;
 }
@@ -206,7 +206,7 @@
     background: #000000;
   }
   ::-webkit-scrollbar-thumb {
-    background: #25262f;
+    background: var(--color-surface-2);
     border-radius: 4px;
   }
   ::-webkit-scrollbar-thumb:hover {
@@ -258,25 +258,25 @@
 /* Radial ambient lighting glow blobs (premium dark-theme accent) */
 .midnight-effect-1 {
   position: fixed;
-  top: -15%;
-  left: -10%;
-  width: 50vw;
-  height: 50vw;
-  max-width: 600px;
-  max-height: 600px;
-  background: radial-gradient(circle, rgba(238, 179, 28, 0.035) 0%, rgba(0,0,0,0) 70%);
+  top: -10%;
+  left: -15%;
+  width: 60vw;
+  height: 60vw;
+  max-width: 800px;
+  max-height: 800px;
+  background: radial-gradient(circle, rgba(238, 179, 28, 0.05) 0%, rgba(0,0,0,0) 70%);
   pointer-events: none;
   z-index: 0;
 }
 .midnight-effect-2 {
   position: fixed;
-  bottom: -15%;
-  right: -10%;
-  width: 50vw;
-  height: 50vw;
-  max-width: 600px;
-  max-height: 600px;
-  background: radial-gradient(circle, rgba(128, 219, 102, 0.025) 0%, rgba(0,0,0,0) 70%);
+  bottom: -10%;
+  right: -15%;
+  width: 60vw;
+  height: 60vw;
+  max-width: 800px;
+  max-height: 800px;
+  background: radial-gradient(circle, rgba(128, 219, 102, 0.035) 0%, rgba(0,0,0,0) 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -307,8 +307,8 @@
    toggling data-visible — CSS-only animation, no layout dependency on JS). */
 .reveal {
   opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.5s ease, transform 0.5s ease;
+  transform: translateY(20px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .reveal[data-visible='true'] {
   opacity: 1;
@@ -317,12 +317,24 @@
 
 /* Stronger hover-glow border, opt-in via className on Card/StatCard. */
 .glow-card {
-  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .glow-card:hover {
-  border-color: rgba(238, 179, 28, 0.25);
+  border-color: rgba(238, 179, 28, 0.2);
   box-shadow: var(--shadow-elevated);
-  transform: translateY(-1px);
+  transform: translateY(-4px);
+}
+
+/* Global button/interactive scale active effect */
+button,
+[role="button"],
+.btn-sheen {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, opacity 0.2s ease;
+}
+button:active,
+[role="button"]:active {
+  transform: scale(0.97);
 }
 
 @media (prefers-reduced-motion: reduce) {

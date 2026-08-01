@@ -19,8 +19,14 @@ export default function BarChart({ data = [], height = 200 }) {
       {
         type: 'bar',
         data: rows.map((d) => d.points),
-        barMaxWidth: 22,
-        itemStyle: { color: '#eeb31c', borderRadius: [0, 4, 4, 0] },
+        barMaxWidth: 20,
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
+            { offset: 0, color: '#eeb31c' },
+            { offset: 1, color: 'rgba(238, 179, 28, 0.4)' },
+          ]),
+          borderRadius: [0, 6, 6, 0],
+        },
       },
     ],
   };

@@ -10,9 +10,9 @@ import DonutChart from '../components/charts/DonutChart.jsx';
 import BarChart from '../components/charts/BarChart.jsx';
 import { ROLES, MEETING_TYPES, roleLabel } from '../constants.js';
 
-const STAT_GRID = 'grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4';
-const TH = 'text-left px-3.5 py-2.5 text-muted text-xs uppercase tracking-wide border-b border-border';
-const TD = 'px-3.5 py-2.5 border-b border-border';
+const STAT_GRID = 'grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6';
+const TH = 'text-left px-5 py-3 text-muted text-2xs uppercase tracking-wider font-bold border-b border-border/40';
+const TD = 'px-5 py-3.5 border-b border-border/40';
 
 function fmtRelative(iso) {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -27,10 +27,10 @@ function fmtRelative(iso) {
 function TypeTag({ type }) {
   const isGroup = type === MEETING_TYPES.GROUP;
   const isDirectConversion = type === MEETING_TYPES.DIRECT_CONVERSION;
-  const className = isGroup ? 'bg-success-soft text-success' : isDirectConversion ? 'bg-info/15 text-info' : 'bg-primary-soft text-primary';
+  const className = isGroup ? 'bg-success-soft text-success border border-success/10' : isDirectConversion ? 'bg-info/15 text-info border border-info/10' : 'bg-primary-soft text-primary border border-primary/10';
   const label = isGroup ? 'Group' : isDirectConversion ? 'Direct conversion' : '1-to-1';
   return (
-    <span className={`text-2xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${className}`}>
+    <span className={`text-2xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md ${className}`}>
       {label}
     </span>
   );
@@ -40,42 +40,41 @@ function DeltaBadge({ pct }) {
   if (!pct) return null;
   const up = pct > 0;
   return (
-    <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${up ? 'bg-success-soft text-success' : 'bg-danger-soft text-danger'}`}>
+    <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full ${up ? 'bg-success-soft text-success' : 'bg-danger-soft text-danger'}`}>
       <Icon name="trendingUp" size={12} className={up ? '' : 'rotate-180'} />
       {up ? '+' : ''}{pct}% vs last week
     </span>
   );
 }
 
-// `sla` defaults defensively: a dashboard card is a read-only summary, so a
-// field the API didn't send should render as an empty state, never take the
-// whole page down with it.
 function NeedsAttentionCard({ sla = {} }) {
   const oldest = sla.oldest || [];
   return (
     <Card title="Needs attention" actions={<Link to="/submissions" className="text-xs text-primary font-semibold hover:underline">View all</Link>}>
-      <div className="grid grid-cols-3 gap-2 mb-4">
-        <div className="text-center bg-surface-2 rounded-thumb py-2.5">
-          <div className="text-lg font-bold font-heading text-success">{sla.onTrack ?? 0}</div>
-          <div className="text-2xs text-muted uppercase tracking-wide mt-0.5">On track</div>
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="text-center bg-surface-2/40 hover:bg-surface-2/70 transition-colors border border-border/20 rounded-thumb py-3 px-2 flex flex-col items-center justify-center shadow-sm">
+          <div className="text-xl font-bold font-heading text-success leading-none">{sla.onTrack ?? 0}</div>
+          <div className="text-2xs text-muted uppercase tracking-wider font-semibold mt-1">On track</div>
         </div>
-        <div className="text-center bg-surface-2 rounded-thumb py-2.5">
-          <div className="text-lg font-bold font-heading text-warning">{sla.dueSoon ?? 0}</div>
-          <div className="text-2xs text-muted uppercase tracking-wide mt-0.5">Due soon</div>
+        <div className="text-center bg-surface-2/40 hover:bg-surface-2/70 transition-colors border border-border/20 rounded-thumb py-3 px-2 flex flex-col items-center justify-center shadow-sm">
+          <div className="text-xl font-bold font-heading text-warning leading-none">{sla.dueSoon ?? 0}</div>
+          <div className="text-2xs text-muted uppercase tracking-wider font-semibold mt-1">Due soon</div>
         </div>
-        <div className="text-center bg-surface-2 rounded-thumb py-2.5">
-          <div className="text-lg font-bold font-heading text-danger">{sla.breached ?? 0}</div>
-          <div className="text-2xs text-muted uppercase tracking-wide mt-0.5">Breached</div>
+        <div className="text-center bg-surface-2/40 hover:bg-surface-2/70 transition-colors border border-border/20 rounded-thumb py-3 px-2 flex flex-col items-center justify-center shadow-sm">
+          <div className="text-xl font-bold font-heading text-danger leading-none">{sla.breached ?? 0}</div>
+          <div className="text-2xs text-muted uppercase tracking-wider font-semibold mt-1">Breached</div>
         </div>
       </div>
       {oldest.length === 0 ? (
         <EmptyState title="All caught up" hint="No pending reviews waiting." icon={<Icon name="check" size={18} />} />
       ) : (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2">
           {oldest.map((m) => (
-            <div key={m.meetingId} className="flex items-center gap-3 px-3 py-2 rounded-control hover:bg-surface-2 transition-colors">
-              <Icon name="alertTriangle" size={15} className="text-warning shrink-0" />
-              <span className="flex-1 text-sm text-white truncate">{m.employeeName}</span>
+            <div key={m.meetingId} className="flex items-center gap-3 px-3 py-2.5 rounded-control hover:bg-surface-2/50 transition-colors border border-transparent hover:border-border/30">
+              <div className="w-8.5 h-8.5 rounded-full bg-primary-soft text-primary border border-primary/20 flex items-center justify-center font-bold text-xs shrink-0">
+                {(m.employeeName || '?').charAt(0).toUpperCase()}
+              </div>
+              <span className="flex-1 text-sm font-medium text-white truncate">{m.employeeName}</span>
               <TypeTag type={m.type} />
               <span className="text-xs text-muted whitespace-nowrap">{m.hoursWaiting}h waiting</span>
             </div>
@@ -92,13 +91,16 @@ function RecentActivityCard({ items }) {
       {items.length === 0 ? (
         <EmptyState title="No activity yet" />
       ) : (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2">
           {items.map((m) => (
-            <div key={m.meetingId} className="flex items-center gap-3 px-3 py-2 rounded-control hover:bg-surface-2 transition-colors">
-              <span className="w-7 h-7 rounded-full bg-surface-2 grid place-items-center shrink-0">
-                <Icon name={m.type === MEETING_TYPES.GROUP ? 'users' : m.type === MEETING_TYPES.DIRECT_CONVERSION ? 'trendingUp' : 'user'} size={13} className="text-muted" />
-              </span>
-              <span className="flex-1 text-sm text-white truncate">{m.employeeName}</span>
+            <div key={m.meetingId} className="flex items-center gap-3 px-3 py-2.5 rounded-control hover:bg-surface-2/50 transition-colors border border-transparent hover:border-border/30">
+              <div className="w-8.5 h-8.5 rounded-full bg-surface-2 text-muted border border-border flex items-center justify-center font-bold text-xs shrink-0 relative">
+                {(m.employeeName || '?').charAt(0).toUpperCase()}
+                <span className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-primary text-on-primary flex items-center justify-center border border-surface shadow-sm">
+                  <Icon name={m.type === MEETING_TYPES.GROUP ? 'users' : m.type === MEETING_TYPES.DIRECT_CONVERSION ? 'trendingUp' : 'user'} size={9} />
+                </span>
+              </div>
+              <span className="flex-1 text-sm font-medium text-white truncate">{m.employeeName}</span>
               <Badge status={m.status} />
               <span className="text-xs text-muted whitespace-nowrap">{fmtRelative(m.createdAt)}</span>
             </div>
@@ -118,7 +120,7 @@ function PerformanceCard({ rows, isAdmin }) {
       {rows.length === 0 ? (
         <EmptyState title="No one to show yet" hint={isAdmin ? 'Managers will appear once assigned.' : 'Your team will appear once added.'} />
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto -mx-6 md:-mx-7">
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr>
@@ -130,8 +132,15 @@ function PerformanceCard({ rows, isAdmin }) {
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.id} className="hover:bg-surface-2 last:[&>td]:border-b-0">
-                  <td className={`${TD} font-semibold text-white`}>{r.name}</td>
+                <tr key={r.id} className="hover:bg-surface-2/40 last:[&>td]:border-b-0 transition-colors">
+                  <td className={`${TD} font-semibold text-white`}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8.5 h-8.5 rounded-full bg-primary-soft text-primary border border-primary/20 flex items-center justify-center font-bold text-xs shrink-0">
+                        {(r.name || '?').charAt(0).toUpperCase()}
+                      </div>
+                      <span>{r.name}</span>
+                    </div>
+                  </td>
                   <td className={TD}>{r.submissions}</td>
                   <td className={TD}>{r.approvalRate}%</td>
                   <td className={`${TD} font-bold text-primary`}>{r.points}</td>
@@ -148,11 +157,13 @@ function PerformanceCard({ rows, isAdmin }) {
 function CitiesCard({ cities }) {
   return (
     <Card title="By city">
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-2">
         {cities.map((c) => (
-          <div key={c.city} className="flex items-center gap-3 px-3 py-2 rounded-control hover:bg-surface-2 transition-colors">
-            <Icon name="globe" size={14} className="text-muted shrink-0" />
-            <span className="flex-1 text-sm text-white">{c.city}</span>
+          <div key={c.city} className="flex items-center gap-3 px-3 py-2.5 rounded-control hover:bg-surface-2/50 transition-colors border border-transparent hover:border-border/30">
+            <div className="w-8.5 h-8.5 rounded-full bg-surface-2 text-muted border border-border flex items-center justify-center font-bold text-xs shrink-0 uppercase">
+              {c.city?.slice(0, 2)}
+            </div>
+            <span className="flex-1 text-sm font-medium text-white">{c.city}</span>
             <span className="text-xs text-muted">{c.count} meetings</span>
             <span className="text-sm font-bold text-primary">{c.points} pts</span>
           </div>
@@ -165,18 +176,18 @@ function CitiesCard({ cities }) {
 function DashboardSkeleton() {
   return (
     <>
-      <div className={`${STAT_GRID} mb-5`}>
-        {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-21" />)}
+      <div className={`${STAT_GRID} mb-6`}>
+        {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-24" />)}
       </div>
-      <div className="grid grid-cols-2 gap-4 mb-5 max-nav:grid-cols-1">
-        <Card title="Meetings — last 7 days"><Skeleton className="h-50" /></Card>
-        <Card title="Meeting type distribution"><Skeleton className="h-50" /></Card>
+      <div className="grid grid-cols-2 gap-6 mb-6 max-nav:grid-cols-1">
+        <Card title="Meetings — last 7 days"><Skeleton className="h-56" /></Card>
+        <Card title="Meeting type distribution"><Skeleton className="h-56" /></Card>
       </div>
-      <div className="grid grid-cols-2 gap-4 mb-5 max-nav:grid-cols-1">
-        <Card title="Needs attention"><Skeleton className="h-40" /></Card>
-        <Card title="Recent activity"><Skeleton className="h-40" /></Card>
+      <div className="grid grid-cols-2 gap-6 mb-6 max-nav:grid-cols-1">
+        <Card title="Needs attention"><Skeleton className="h-44" /></Card>
+        <Card title="Recent activity"><Skeleton className="h-44" /></Card>
       </div>
-      <Card title="Performance"><Skeleton className="h-40" /></Card>
+      <Card title="Performance"><Skeleton className="h-44" /></Card>
     </>
   );
 }
@@ -187,6 +198,13 @@ export default function DashboardPage() {
   const { summary, status } = useSelector((s) => s.dashboard);
 
   useEffect(() => { dispatch(fetchSummary()); }, [dispatch]);
+
+  const getGreeting = () => {
+    const hrs = new Date().getHours();
+    if (hrs < 12) return 'Good morning';
+    if (hrs < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
 
   // Branch on the role the PAYLOAD declares, not the one in the auth slice.
   //
@@ -206,10 +224,10 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <div className="mb-7">
-        <span className="text-primary text-xs font-bold uppercase tracking-widest">Overview</span>
-        <h1 className="text-display leading-tight font-bold font-heading tracking-tight text-white mt-1">Hi {user.name.split(' ')[0]}</h1>
-        <p className="text-muted text-sm mt-1.5">
+      <div className="mb-8 border-b border-border/20 pb-6">
+        <span className="text-primary text-2xs font-bold uppercase tracking-widest">Overview</span>
+        <h1 className="text-display leading-none font-bold font-heading tracking-tight text-white mt-1.5">{getGreeting()}, {user.name.split(' ')[0]}</h1>
+        <p className="text-muted text-sm mt-2">
           {isUser
             ? "Here's your activity today."
             : `${roleLabel(user.role)} overview for your ${isAdmin ? 'organization' : 'team'}.`}
@@ -220,7 +238,7 @@ export default function DashboardPage() {
         <DashboardSkeleton />
       ) : isUser ? (
         <>
-          <Reveal className={`${STAT_GRID} mb-5`}>
+          <Reveal className={`${STAT_GRID} mb-6`}>
             <StatCard label="Meetings today" value={k.today} accent="indigo" />
             <StatCard label="Total meetings" value={k.total} accent="blue" />
             <StatCard label="Pending review" value={k.byStatus.PENDING} accent="amber" />
@@ -229,7 +247,7 @@ export default function DashboardPage() {
             <StatCard label="My rank" value={summary.rank ? `#${summary.rank}` : '—'} sub={summary.gapToNext ? `${summary.gapToNext} to next` : ''} accent="amber" />
           </Reveal>
 
-          <Reveal delay={STAGGER[1]} className="grid grid-cols-2 gap-4 mb-5 max-nav:grid-cols-1">
+          <Reveal delay={STAGGER[1]} className="grid grid-cols-2 gap-6 mb-6 max-nav:grid-cols-1">
             <Card title="Meetings — last 7 days">
               <LineChart data={summary.trend} />
             </Card>
@@ -258,7 +276,7 @@ export default function DashboardPage() {
         </>
       ) : (
         <>
-          <Reveal className={`${STAT_GRID} mb-5`}>
+          <Reveal className={`${STAT_GRID} mb-6`}>
             <StatCard label="Meetings today" value={k.today} accent="indigo" />
             <StatCard label="Total meetings" value={k.total} accent="blue" />
             <StatCard label="Pending review" value={k.byStatus.PENDING} accent="amber" />
@@ -273,7 +291,7 @@ export default function DashboardPage() {
             )}
           </Reveal>
 
-          <Reveal delay={STAGGER[1]} className="grid grid-cols-2 gap-4 mb-5 max-nav:grid-cols-1">
+          <Reveal delay={STAGGER[1]} className="grid grid-cols-2 gap-6 mb-6 max-nav:grid-cols-1">
             <Card
               title="Meetings — last 7 days"
               actions={<DeltaBadge pct={summary.weekOverWeek?.deltaPct} />}
@@ -291,17 +309,17 @@ export default function DashboardPage() {
             </Card>
           </Reveal>
 
-          <Reveal delay={STAGGER[2]} className="grid grid-cols-2 gap-4 mb-5 max-nav:grid-cols-1">
+          <Reveal delay={STAGGER[2]} className="grid grid-cols-2 gap-6 mb-6 max-nav:grid-cols-1">
             <NeedsAttentionCard sla={summary.sla} />
             <RecentActivityCard items={summary.recentActivity || []} />
           </Reveal>
 
-          <Reveal delay={STAGGER[3]} className="mb-5">
+          <Reveal delay={STAGGER[3]} className="mb-6">
             <PerformanceCard rows={summary.performance || []} isAdmin={isAdmin} />
           </Reveal>
 
           {summary.cities ? (
-            <Reveal delay={STAGGER[4]} className="grid grid-cols-2 gap-4 max-nav:grid-cols-1">
+            <Reveal delay={STAGGER[4]} className="grid grid-cols-2 gap-6 max-nav:grid-cols-1">
               <Card title="Top performers">
                 {(summary.leaderboardPreview || []).length === 0 ? (
                   <p className="text-sm text-muted">No approved points yet.</p>

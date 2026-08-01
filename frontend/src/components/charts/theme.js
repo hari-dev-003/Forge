@@ -23,7 +23,7 @@ export const ReactEChartsCore = ReactEChartsCoreImport?.default ?? ReactEChartsC
 // neutral (the two colors that actually show up in the 2-category donut),
 // success/danger kept only as semantic fallbacks for genuinely
 // positive/negative categories, not arbitrary series filler.
-export const CHART_COLORS = ['#eeb31c', '#9b9db1', '#cb960e', '#80db66', '#ef4444'];
+export const CHART_COLORS = ['#eeb31c', '#80db66', '#3b82f6', '#f59e0b', '#ef4444', '#9b9db1'];
 
 // Charts render outside the DOM's cascade (ECharts paints to canvas), so they
 // can't inherit --font-sans and have to be told the family explicitly. Read it
@@ -38,15 +38,19 @@ export const CHART_FONT =
 // these numbers are the canvas-side equivalents of --text-2xs/--text-xs in
 // index.css and must be updated by hand if that scale ever changes.
 export const axisCommon = {
-  axisLine: { lineStyle: { color: 'rgba(204,211,217,0.2)' } },
-  axisLabel: { color: '#9b9db1', fontFamily: CHART_FONT, fontSize: 11 }, // --text-2xs
-  splitLine: { lineStyle: { color: 'rgba(204,211,217,0.06)' } },
+  axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.05)' } },
+  axisLabel: { color: '#9b9db1', fontFamily: CHART_FONT, fontSize: 10, margin: 8 }, // --text-2xs
+  splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.03)' } },
   axisTick: { show: false },
 };
 
 export const tooltipCommon = {
-  backgroundColor: '#25262f',
-  borderColor: 'rgba(204,211,217,0.2)',
+  backgroundColor: 'rgba(24, 24, 27, 0.95)',
+  borderColor: 'rgba(238, 179, 28, 0.15)',
   borderWidth: 1,
+  borderRadius: 12,
+  shadowColor: 'rgba(0, 0, 0, 0.5)',
+  shadowBlur: 12,
+  padding: [10, 14],
   textStyle: { color: '#ffffff', fontFamily: CHART_FONT, fontSize: 12 }, // --text-xs
 };

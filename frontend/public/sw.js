@@ -8,7 +8,7 @@
  *
  * Bump CACHE to invalidate everything on a new deploy.
  */
-const CACHE = 'forge-cache-v2';
+const CACHE = 'forge-cache-v3';
 
 // Stable, non-hashed assets worth precaching. Hashed build assets are cached
 // lazily on first fetch, so they don't need to be listed here.

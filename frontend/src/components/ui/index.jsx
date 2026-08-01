@@ -35,14 +35,14 @@ export function Button({ variant = 'primary', size = 'md', loading, children, cl
 
 export function Card({ title, actions, children, className = '' }) {
   return (
-    <section className={`glow-card bg-surface/80 backdrop-blur-md border border-border rounded-card shadow-card mb-5 ${className}`}>
+    <section className={`glow-card bg-surface/80 backdrop-blur-md rounded-card shadow-card mb-6 transition-all duration-300 ${className}`}>
       {(title || actions) && (
-        <header className="flex items-center justify-between px-5 py-4 border-b border-border">
-          {title && <h3 className="text-md font-medium text-white tracking-[-0.005em]">{title}</h3>}
+        <header className="flex items-center justify-between px-6 py-5 border-b border-border/40">
+          {title && <h3 className="text-md font-semibold text-white tracking-tight">{title}</h3>}
           {actions}
         </header>
       )}
-      <div className="p-5">{children}</div>
+      <div className="p-6 md:p-7">{children}</div>
     </section>
   );
 }
@@ -62,20 +62,20 @@ const STAT_ACCENT = {
 export function StatCard({ label, value, sub, accent = 'indigo', trend }) {
   return (
     <div
-      className={`glow-card relative overflow-hidden bg-surface/80 backdrop-blur-md border border-border rounded-shell p-5 flex flex-col gap-1 shadow-card
+      className={`glow-card relative overflow-hidden bg-surface/85 backdrop-blur-md rounded-shell p-6 flex flex-col gap-1.5 shadow-card
         before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 ${STAT_ACCENT[accent] || STAT_ACCENT.indigo}`}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-xs text-muted type-label">{label}</span>
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-2xs font-bold tracking-wider uppercase text-muted">{label}</span>
         {trend && (
-          <span className={`inline-flex items-center gap-0.5 text-xs font-bold ${trend.direction === 'down' ? 'text-danger' : 'text-success'}`}>
-            <Icon name="trendingUp" size={13} className={trend.direction === 'down' ? 'rotate-180' : ''} />
+          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${trend.direction === 'down' ? 'bg-danger-soft/80 text-danger' : 'bg-success-soft/80 text-success'}`}>
+            <Icon name="trendingUp" size={12} className={trend.direction === 'down' ? 'rotate-180' : ''} />
             {trend.value}
           </span>
         )}
       </div>
-      <span className="text-display-lg font-semibold tracking-[-0.03em] leading-none text-white font-heading tabular">{value}</span>
-      {sub != null && <span className="text-xs text-muted">{sub}</span>}
+      <span className="text-display-lg font-bold tracking-tight leading-none text-white font-heading tabular mt-1">{value}</span>
+      {sub != null && <span className="text-xs text-muted/70 font-medium">{sub}</span>}
     </div>
   );
 }
@@ -141,13 +141,13 @@ export function Checkbox({ label, className = '', ...props }) {
 
 export function PageHeader({ eyebrow, title, subtitle, actions }) {
   return (
-    <div className="mb-7 flex justify-between items-start gap-4 flex-wrap">
+    <div className="mb-8 flex justify-between items-end gap-4 flex-wrap border-b border-border/20 pb-6">
       <div>
-        {eyebrow && <span className="text-primary text-xs type-label">{eyebrow}</span>}
-        <h1 className="text-display leading-tight font-semibold font-heading text-white mt-1">{title}</h1>
-        {subtitle && <p className="text-muted text-sm mt-1.5">{subtitle}</p>}
+        {eyebrow && <span className="text-primary text-xs font-bold tracking-widest uppercase">{eyebrow}</span>}
+        <h1 className="text-display leading-none font-bold font-heading text-white mt-1.5 tracking-tight">{title}</h1>
+        {subtitle && <p className="text-muted text-sm mt-2">{subtitle}</p>}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="flex items-center gap-3 shrink-0">{actions}</div>}
     </div>
   );
 }
