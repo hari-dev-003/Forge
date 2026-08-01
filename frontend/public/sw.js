@@ -8,7 +8,7 @@
  *
  * Bump CACHE to invalidate everything on a new deploy.
  */
-const CACHE = 'forge-cache-v3';
+const CACHE = 'forge-cache-v4';
 
 // Stable, non-hashed assets worth precaching. Hashed build assets are cached
 // lazily on first fetch, so they don't need to be listed here.
@@ -56,7 +56,8 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.startsWith('/api')) return;
 
   // App navigations: network-first, fall back to the cached shell offline.
-  if (request.mode === 'navigate') {
+  const isNav = request.mode === 'navigate' || (request.headers.get('accept') && request.headers.get('accept').includes('text/html'));
+  if (isNav) {
     event.respondWith(
       fetch(request)
         .then((response) => {
@@ -74,13 +75,18 @@ self.addEventListener('fetch', (event) => {
     caches.match(request).then(
       (cached) =>
         cached ||
-        fetch(request).then((response) => {
-          if (response.ok && response.type === 'basic') {
-            const copy = response.clone();
-            caches.open(CACHE).then((cache) => cache.put(request, copy));
-          }
-          return response;
-        })
+        fetch(request)
+          .then((response) => {
+            if (response.ok && response.type === 'basic') {
+              const copy = response.clone();
+              caches.open(CACHE).then((cache) => cache.put(request, copy));
+            }
+            return response;
+          })
+          .catch(() => {
+            // Gracefully catch network failure/CORS blocks without throwing unhandled promise rejections
+            return new Response('Asset offline or unavailable', { status: 503, statusText: 'Service Unavailable' });
+          })
     )
   );
 });
